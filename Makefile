@@ -19,6 +19,7 @@ test:
 
 .PHONY: lint
 lint:
+	@ go fmt ./...
 	@ golangci-lint run --config=.golangci.yaml --fix
 
 .PHONY: generate
