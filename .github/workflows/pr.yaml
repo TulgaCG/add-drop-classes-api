@@ -5,11 +5,9 @@ on:
       - v*
     branches:
       - main
-permissions:
-  contents: read
 jobs:
   lint:
-    name: lint
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -23,6 +21,15 @@ jobs:
         with:
           version: latest
           args: --config=.golangci.yaml
+      - name: Check undetected changes
+        run: |-
+          REPO_STATUS="$(git status --porcelain)"
+          if [[ ! -z $REPO_STATUS ]]; then
+            echo "::error::Uncommitted changes detected"
+            echo "$REPO_STATUS"
+            git status -vv
+            exit 1
+          fi
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -49,8 +56,17 @@ jobs:
     name: Generate
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install sqlc
-        uses: actions/checkout@v4
         run: sudo snap install sqlc
       - name: Run make generate
         run: make generate
+      - name: Check undetected changes
+        run: |-
+          REPO_STATUS="$(git status --porcelain)"
+          if [[ ! -z $REPO_STATUS ]]; then
+            echo "::error::Uncommitted changes detected"
+            echo "$REPO_STATUS"
+            git status -vv
+            exit 1
+          fi

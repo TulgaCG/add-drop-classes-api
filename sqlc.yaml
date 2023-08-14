@@ -5,7 +5,7 @@ sql:
     queries: "database/queries"
     gen:
       go:
-        out: "gen/db"
+        out: "pkg/gen/db"
         emit_db_tags: true
         emit_json_tags: true
         json_tags_case_style: "camel"

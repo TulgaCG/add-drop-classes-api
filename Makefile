@@ -3,7 +3,7 @@ build: deps lint compile test install
 
 .PHONY: deps
 deps:
-	@ go mod tidy --compat=1.20
+	@ go mod tidy --compat=1.21
 
 .PHONY: compile
 compile:
@@ -19,6 +19,7 @@ test:
 
 .PHONY: lint
 lint:
+	@ go fmt ./...
 	@ golangci-lint run --config=.golangci.yaml --fix
 
 .PHONY: generate
