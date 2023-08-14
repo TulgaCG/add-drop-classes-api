@@ -24,5 +24,6 @@ lint:
 .PHONY: generate
 generate: generate-sqlc-code
 
+.PHONY: generate-sqlc-code
 generate-sqlc-code:	
 	@ sqlc generate --file=sqlc.yaml
