@@ -11,17 +11,18 @@ compile:
 
 .PHONY: install
 install:
-	go install ./cmd/add-drop-classes-api
+	@ go install ./cmd/add-drop-classes-api
 
 .PHONY: test
 test:
-	go test ./...
+	@ go test ./...
 
 .PHONY: lint
 lint:
-	golangci-lint run --config=.golangci.yaml --fix
+	@ golangci-lint run --config=.golangci.yaml --fix
 
 .PHONY: generate
 generate: generate-sqlc-code
 
-generate-sqlc-code:	@ sqlc generate --file=sqlc.yaml
+generate-sqlc-code:	
+	@ sqlc generate --file=sqlc.yaml
