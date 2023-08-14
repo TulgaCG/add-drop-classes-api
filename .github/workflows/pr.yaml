@@ -21,6 +21,15 @@ jobs:
         with:
           version: latest
           args: --config=.golangci.yaml
+      - name: Check undetected changes
+        run: |-
+          REPO_STATUS="$(git status --porcelain)"
+          if [[ ! -z $REPO_STATUS ]]; then
+            echo "::error::Uncommitted changes detected"
+            echo "$REPO_STATUS"
+            git status -vv
+            exit 1
+          fi
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -52,3 +61,12 @@ jobs:
         run: sudo snap install sqlc
       - name: Run make generate
         run: make generate
+      - name: Check undetected changes
+        run: |-
+          REPO_STATUS="$(git status --porcelain)"
+          if [[ ! -z $REPO_STATUS ]]; then
+            echo "::error::Uncommitted changes detected"
+            echo "$REPO_STATUS"
+            git status -vv
+            exit 1
+          fi
