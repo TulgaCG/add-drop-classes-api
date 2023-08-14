@@ -7,7 +7,7 @@ on:
       - main
 jobs:
   lint:
-    name: lint
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -47,7 +47,7 @@ jobs:
     name: Generate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Install sqlc
         run: sudo snap install sqlc
       - name: Run make generate
