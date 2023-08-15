@@ -13,7 +13,6 @@ import (
 )
 
 func Post(c *gin.Context) {
-	// Get request
 	var req gendb.CreateUserParams
 	err := c.Bind(&req)
 	if err != nil {
@@ -23,7 +22,6 @@ func Post(c *gin.Context) {
 		return
 	}
 
-	// Get db
 	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -32,7 +30,6 @@ func Post(c *gin.Context) {
 		return
 	}
 
-	// Create user
 	newUser, err := db.CreateUser(context.Background(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -42,12 +39,13 @@ func Post(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user": newUser,
+		"id":       newUser.ID,
+		"username": newUser.Username,
+		"password": newUser.Password,
 	})
 }
 
 func Get(c *gin.Context) {
-	// Get db
 	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -56,7 +54,6 @@ func Get(c *gin.Context) {
 		return
 	}
 
-	// Get list
 	users, err := db.ListUsers(context.Background())
 	if err != nil {
 		c.JSON(http.StatusNoContent, gin.H{
@@ -71,7 +68,6 @@ func Get(c *gin.Context) {
 }
 
 func GetByID(c *gin.Context) {
-	// Get db
 	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -80,7 +76,6 @@ func GetByID(c *gin.Context) {
 		return
 	}
 
-	// Get id from url
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -89,7 +84,6 @@ func GetByID(c *gin.Context) {
 		return
 	}
 
-	// Get user
 	u, err := db.GetUser(context.Background(), types.UserID(id))
 	if err != nil {
 		c.JSON(http.StatusNoContent, gin.H{
@@ -99,12 +93,13 @@ func GetByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user": u,
+		"id":        u.ID,
+		"username":  u.Username,
+		"passoword": u.Password,
 	})
 }
 
 func Update(c *gin.Context) {
-	// Get request
 	var req gendb.UpdateUserParams
 	err := c.Bind(&req)
 	if err != nil {
@@ -114,7 +109,6 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	// Get db
 	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -123,7 +117,6 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	// Update user
 	u, err := db.UpdateUser(context.Background(), gendb.UpdateUserParams{
 		Username: req.Username,
 		Password: req.Password,
@@ -137,12 +130,13 @@ func Update(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user": u,
+		"id":       u.ID,
+		"username": u.Username,
+		"password": u.Password,
 	})
 }
 
 func Delete(c *gin.Context) {
-	// Get db
 	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -151,7 +145,6 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	// Get id from url
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -160,7 +153,6 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	// Delete user
 	err = db.DeleteUser(context.Background(), types.UserID(id))
 	if err != nil {
 		c.JSON(http.StatusNoContent, gin.H{
@@ -169,7 +161,5 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"user": "user deleted successfully",
-	})
+	c.JSON(http.StatusOK, gin.H{})
 }

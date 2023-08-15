@@ -15,8 +15,6 @@ func main() {
 		log.Fatalf("failed to create db connection: %s", err.Error())
 	}
 
-	_ = database.AddMockData(dbPath)
-
 	s := server.New(db)
 	err = s.Run()
 	if err != nil {
