@@ -10,8 +10,12 @@ import (
 )
 
 type Querier interface {
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteUser(ctx context.Context, id sql.NullInt64) error
 	GetUser(ctx context.Context, id sql.NullInt64) (User, error)
 	GetUserByUsername(ctx context.Context, username sql.NullString) (User, error)
+	ListUsers(ctx context.Context) ([]User, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

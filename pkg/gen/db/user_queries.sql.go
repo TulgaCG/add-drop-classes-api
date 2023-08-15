@@ -10,6 +10,37 @@ import (
 	"database/sql"
 )
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+    username, password
+) VALUES (
+    ?, ?
+)
+RETURNING id, username, password
+`
+
+type CreateUserParams struct {
+	Username sql.NullString `db:"username" json:"username"`
+	Password sql.NullString `db:"password" json:"password"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Password)
+	var i User
+	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users
+WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, username, password FROM users
 WHERE id = ? LIMIT 1
@@ -29,6 +60,55 @@ WHERE username = ? LIMIT 1
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username sql.NullString) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	var i User
+	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	return i, err
+}
+
+const listUsers = `-- name: ListUsers :many
+SELECT id, username, password FROM users
+ORDER BY username
+`
+
+func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, listUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(&i.ID, &i.Username, &i.Password); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+set username = ?,
+password = ?
+WHERE id = ?
+RETURNING id, username, password
+`
+
+type UpdateUserParams struct {
+	Username sql.NullString `db:"username" json:"username"`
+	Password sql.NullString `db:"password" json:"password"`
+	ID       sql.NullInt64  `db:"id" json:"id"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUser, arg.Username, arg.Password, arg.ID)
 	var i User
 	err := row.Scan(&i.ID, &i.Username, &i.Password)
 	return i, err
