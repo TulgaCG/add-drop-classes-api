@@ -16,3 +16,7 @@ bin/
 # Editor files
 .vscode
 .idea
+
+# Db files
+.sqlite
+mockdata.sql

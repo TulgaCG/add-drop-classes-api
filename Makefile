@@ -1,5 +1,5 @@
 .PHONY: build
-build: deps lint compile test install
+build: generate deps lint compile test install
 
 .PHONY: deps
 deps:
@@ -7,7 +7,7 @@ deps:
 
 .PHONY: compile
 compile:
-	@ go build -o bin/catgo cmd/add-drop-classes-api/main.go
+	@ go build -o bin/add-drop-classes cmd/add-drop-classes-api/main.go
 
 .PHONY: install
 install:
