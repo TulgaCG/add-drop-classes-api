@@ -1,5 +1,5 @@
 .PHONY: build
-build: deps lint generate compile test install
+build: generate deps lint compile test install
 
 .PHONY: deps
 deps:

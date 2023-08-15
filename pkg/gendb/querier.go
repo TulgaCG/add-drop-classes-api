@@ -2,18 +2,19 @@
 // versions:
 //   sqlc v1.19.1
 
-package db
+package gendb
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteUser(ctx context.Context, id sql.NullInt64) error
-	GetUser(ctx context.Context, id sql.NullInt64) (User, error)
-	GetUserByUsername(ctx context.Context, username sql.NullString) (User, error)
+	DeleteUser(ctx context.Context, id types.UserID) error
+	GetUser(ctx context.Context, id types.UserID) (User, error)
+	GetUserByUsername(ctx context.Context, username string) (User, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }

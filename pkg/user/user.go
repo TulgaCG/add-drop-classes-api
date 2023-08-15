@@ -2,18 +2,19 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/TulgaCG/add-drop-classes-api/pkg/gen/db"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/middleware"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 func Post(c *gin.Context) {
 	// Get request
-	var req db.CreateUserParams
+	var req gendb.CreateUserParams
 	err := c.Bind(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -22,8 +23,8 @@ func Post(c *gin.Context) {
 		return
 	}
 
-	// Get query
-	query, ok := c.MustGet(middleware.DatabaseCtxKey).(*db.Queries)
+	// Get db
+	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -32,10 +33,7 @@ func Post(c *gin.Context) {
 	}
 
 	// Create user
-	newUser, err := query.CreateUser(context.Background(), db.CreateUserParams{
-		Username: req.Username,
-		Password: req.Password,
-	})
+	newUser, err := db.CreateUser(context.Background(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to create user",
@@ -49,8 +47,8 @@ func Post(c *gin.Context) {
 }
 
 func Get(c *gin.Context) {
-	// Get query
-	query, ok := c.MustGet(middleware.DatabaseCtxKey).(*db.Queries)
+	// Get db
+	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -59,7 +57,7 @@ func Get(c *gin.Context) {
 	}
 
 	// Get list
-	users, err := query.ListUsers(context.Background())
+	users, err := db.ListUsers(context.Background())
 	if err != nil {
 		c.JSON(http.StatusNoContent, gin.H{
 			"error": "failed to list users",
@@ -73,8 +71,8 @@ func Get(c *gin.Context) {
 }
 
 func GetByID(c *gin.Context) {
-	// Get query
-	query, ok := c.MustGet(middleware.DatabaseCtxKey).(*db.Queries)
+	// Get db
+	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -83,8 +81,7 @@ func GetByID(c *gin.Context) {
 	}
 
 	// Get id from url
-	var id sql.NullInt64
-	err := id.Scan(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "id must be integer",
@@ -93,7 +90,7 @@ func GetByID(c *gin.Context) {
 	}
 
 	// Get user
-	u, err := query.GetUser(context.Background(), id)
+	u, err := db.GetUser(context.Background(), types.UserID(id))
 	if err != nil {
 		c.JSON(http.StatusNoContent, gin.H{
 			"error": "failed to get user by id",
@@ -106,43 +103,9 @@ func GetByID(c *gin.Context) {
 	})
 }
 
-func GetUserByUsername(c *gin.Context) {
-	// Get query
-	query, ok := c.MustGet(middleware.DatabaseCtxKey).(*db.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to get db",
-		})
-		return
-	}
-
-	// Get username from url
-	var username sql.NullString
-	err := username.Scan(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get username",
-		})
-		return
-	}
-
-	// Get user
-	u, err := query.GetUserByUsername(context.Background(), username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to get user by username",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"user": u,
-	})
-}
-
 func Update(c *gin.Context) {
 	// Get request
-	var req db.UpdateUserParams
+	var req gendb.UpdateUserParams
 	err := c.Bind(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -151,8 +114,8 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	// Get query
-	query, ok := c.MustGet(middleware.DatabaseCtxKey).(*db.Queries)
+	// Get db
+	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -161,7 +124,7 @@ func Update(c *gin.Context) {
 	}
 
 	// Update user
-	u, err := query.UpdateUser(context.Background(), db.UpdateUserParams{
+	u, err := db.UpdateUser(context.Background(), gendb.UpdateUserParams{
 		Username: req.Username,
 		Password: req.Password,
 		ID:       req.ID,
@@ -179,8 +142,8 @@ func Update(c *gin.Context) {
 }
 
 func Delete(c *gin.Context) {
-	// Get query
-	query, ok := c.MustGet(middleware.DatabaseCtxKey).(*db.Queries)
+	// Get db
+	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -189,8 +152,7 @@ func Delete(c *gin.Context) {
 	}
 
 	// Get id from url
-	var id sql.NullInt64
-	err := id.Scan(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to get id",
@@ -199,7 +161,7 @@ func Delete(c *gin.Context) {
 	}
 
 	// Delete user
-	err = query.DeleteUser(context.Background(), id)
+	err = db.DeleteUser(context.Background(), types.UserID(id))
 	if err != nil {
 		c.JSON(http.StatusNoContent, gin.H{
 			"error": "failed to delete user",

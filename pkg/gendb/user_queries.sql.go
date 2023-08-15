@@ -3,11 +3,12 @@
 //   sqlc v1.19.1
 // source: user_queries.sql
 
-package db
+package gendb
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -20,8 +21,8 @@ RETURNING id, username, password
 `
 
 type CreateUserParams struct {
-	Username sql.NullString `db:"username" json:"username"`
-	Password sql.NullString `db:"password" json:"password"`
+	Username string `db:"username" json:"username"`
+	Password string `db:"password" json:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -36,7 +37,7 @@ DELETE FROM users
 WHERE id = ?
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id sql.NullInt64) error {
+func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) error {
 	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
 }
@@ -46,7 +47,7 @@ SELECT id, username, password FROM users
 WHERE id = ? LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id sql.NullInt64) (User, error) {
+func (q *Queries) GetUser(ctx context.Context, id types.UserID) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i User
 	err := row.Scan(&i.ID, &i.Username, &i.Password)
@@ -58,7 +59,7 @@ SELECT id, username, password FROM users
 WHERE username = ? LIMIT 1
 `
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username sql.NullString) (User, error) {
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
 	var i User
 	err := row.Scan(&i.ID, &i.Username, &i.Password)
@@ -102,9 +103,9 @@ RETURNING id, username, password
 `
 
 type UpdateUserParams struct {
-	Username sql.NullString `db:"username" json:"username"`
-	Password sql.NullString `db:"password" json:"password"`
-	ID       sql.NullInt64  `db:"id" json:"id"`
+	Username string       `db:"username" json:"username"`
+	Password string       `db:"password" json:"password"`
+	ID       types.UserID `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {

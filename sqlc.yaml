@@ -5,8 +5,14 @@ sql:
     queries: "database/queries"
     gen:
       go:
-        out: "pkg/gen/db"
+        out: "pkg/gendb"
         emit_db_tags: true
         emit_json_tags: true
         json_tags_case_style: "camel"
         emit_interface: true
+        overrides:
+          - column: users.id
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.UserID
+          
+          - column: lectures.id
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.LectureID

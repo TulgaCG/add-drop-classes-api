@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/TulgaCG/add-drop-classes-api/database"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/database"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/server"
 )
 

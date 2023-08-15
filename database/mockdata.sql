@@ -1,8 +1,8 @@
-INSERT INTO users(username, password) 
+INSERT INTO users(id, username, password) 
 VALUES
-("tulgacan", "123456t"),
-("secretuser", "topsecretpass"),
-("peltek", "pel2tek3"),
-("legend27", "72dnegel"),
-("cilgin_delikanli", "hizli1delikanli"),
-("tom334", "luke234");
+(1, "tulgacan", "123456t"),
+(2, "secretuser", "topsecretpass"),
+(3, "peltek", "pel2tek3"),
+(4, "legend27", "72dnegel"),
+(5, "cilgin_delikanli", "hizli1delikanli"),
+(6, "tom334", "luke234");
