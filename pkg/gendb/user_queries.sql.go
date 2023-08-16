@@ -7,9 +7,30 @@ package gendb
 
 import (
 	"context"
+	"time"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
+
+const addToken = `-- name: AddToken :one
+UPDATE users
+set token = ?,
+token_expire_at = CURRENT_TIMESTAMP
+WHERE id = ?
+RETURNING token
+`
+
+type AddTokenParams struct {
+	Token string       `db:"token" json:"token"`
+	ID    types.UserID `db:"id" json:"id"`
+}
+
+func (q *Queries) AddToken(ctx context.Context, arg AddTokenParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, addToken, arg.Token, arg.ID)
+	var token string
+	err := row.Scan(&token)
+	return token, err
+}
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
@@ -17,7 +38,7 @@ INSERT INTO users (
 ) VALUES (
     ?, ?
 )
-RETURNING id, username, password
+RETURNING id, username, password, token, token_expire_at
 `
 
 type CreateUserParams struct {
@@ -28,7 +49,13 @@ type CreateUserParams struct {
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Password)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Token,
+		&i.TokenExpireAt,
+	)
 	return i, err
 }
 
@@ -42,32 +69,69 @@ func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) error {
 	return err
 }
 
+const expireToken = `-- name: ExpireToken :one
+UPDATE users
+set token_expire_at = ?
+WHERE id = ?
+RETURNING id, username, password, token, token_expire_at
+`
+
+type ExpireTokenParams struct {
+	TokenExpireAt time.Time    `db:"token_expire_at" json:"tokenExpireAt"`
+	ID            types.UserID `db:"id" json:"id"`
+}
+
+func (q *Queries) ExpireToken(ctx context.Context, arg ExpireTokenParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, expireToken, arg.TokenExpireAt, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Token,
+		&i.TokenExpireAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
-SELECT id, username, password FROM users
+SELECT id, username, password, token, token_expire_at FROM users
 WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id types.UserID) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Token,
+		&i.TokenExpireAt,
+	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, password FROM users
+SELECT id, username, password, token, token_expire_at FROM users
 WHERE username = ? LIMIT 1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Token,
+		&i.TokenExpireAt,
+	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, username, password FROM users
+SELECT id, username, password, token, token_expire_at FROM users
 ORDER BY username
 `
 
@@ -80,7 +144,13 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	var items []User
 	for rows.Next() {
 		var i User
-		if err := rows.Scan(&i.ID, &i.Username, &i.Password); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Password,
+			&i.Token,
+			&i.TokenExpireAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -99,7 +169,7 @@ UPDATE users
 set username = ?,
 password = ?
 WHERE id = ?
-RETURNING id, username, password
+RETURNING id, username, password, token, token_expire_at
 `
 
 type UpdateUserParams struct {
@@ -111,6 +181,12 @@ type UpdateUserParams struct {
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, updateUser, arg.Username, arg.Password, arg.ID)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Token,
+		&i.TokenExpireAt,
+	)
 	return i, err
 }
