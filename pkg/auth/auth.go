@@ -78,7 +78,7 @@ func Login(c *gin.Context) {
 	}
 
 	if time.Since(user.TokenExpireAt.Time.Add(validTime)) > 0 {
-		token, err := db.AddToken(context.Background(), gendb.AddTokenParams{
+		token, err := db.UpdateToken(context.Background(), gendb.UpdateTokenParams{
 			ID:    user.ID,
 			Token: sql.NullString{String: createRandomToken(), Valid: true},
 		})
@@ -90,6 +90,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"token":    token,
 			"username": user.Username,
+			"message":  "logged in",
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
@@ -125,7 +126,7 @@ func Logout(c *gin.Context) {
 		return
 	}
 
-	_, err = db.ExpireToken(context.Background(), gendb.ExpireTokenParams{
+	_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
 		TokenExpireAt: sql.NullTime{
 			Time:  time.Now().Add(-validTime),
 			Valid: true,

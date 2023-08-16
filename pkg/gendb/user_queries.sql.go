@@ -7,30 +7,9 @@ package gendb
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
-
-const addToken = `-- name: AddToken :one
-UPDATE users
-set token = ?,
-token_expire_at = CURRENT_TIMESTAMP
-WHERE id = ?
-RETURNING token
-`
-
-type AddTokenParams struct {
-	Token sql.NullString `db:"token" json:"token"`
-	ID    types.UserID   `db:"id" json:"id"`
-}
-
-func (q *Queries) AddToken(ctx context.Context, arg AddTokenParams) (sql.NullString, error) {
-	row := q.db.QueryRowContext(ctx, addToken, arg.Token, arg.ID)
-	var token sql.NullString
-	err := row.Scan(&token)
-	return token, err
-}
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
@@ -67,31 +46,6 @@ WHERE id = ?
 func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) error {
 	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
-}
-
-const expireToken = `-- name: ExpireToken :one
-UPDATE users
-set token_expire_at = ?
-WHERE id = ?
-RETURNING id, username, password, token, token_expire_at
-`
-
-type ExpireTokenParams struct {
-	TokenExpireAt sql.NullTime `db:"token_expire_at" json:"tokenExpireAt"`
-	ID            types.UserID `db:"id" json:"id"`
-}
-
-func (q *Queries) ExpireToken(ctx context.Context, arg ExpireTokenParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, expireToken, arg.TokenExpireAt, arg.ID)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Password,
-		&i.Token,
-		&i.TokenExpireAt,
-	)
-	return i, err
 }
 
 const getUser = `-- name: GetUser :one

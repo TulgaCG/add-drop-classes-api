@@ -28,16 +28,3 @@ set username = ?,
 password = ?
 WHERE id = ?
 RETURNING *;
-
--- name: AddToken :one
-UPDATE users
-set token = ?,
-token_expire_at = CURRENT_TIMESTAMP
-WHERE id = ?
-RETURNING token;
-
--- name: ExpireToken :one
-UPDATE users
-set token_expire_at = ?
-WHERE id = ?
-RETURNING *;
