@@ -38,11 +38,7 @@ func Post(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"id":       newUser.ID,
-		"username": newUser.Username,
-		"password": newUser.Password,
-	})
+	c.JSON(http.StatusOK, newUser)
 }
 
 func Get(c *gin.Context) {
@@ -92,11 +88,7 @@ func GetByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"id":        u.ID,
-		"username":  u.Username,
-		"passoword": u.Password,
-	})
+	c.JSON(http.StatusOK, u)
 }
 
 func Update(c *gin.Context) {
@@ -129,11 +121,7 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"id":       u.ID,
-		"username": u.Username,
-		"password": u.Password,
-	})
+	c.JSON(http.StatusOK, u)
 }
 
 func Delete(c *gin.Context) {
@@ -161,5 +149,5 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.Status(http.StatusOK)
 }
