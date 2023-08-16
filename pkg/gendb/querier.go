@@ -6,12 +6,13 @@ package gendb
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 type Querier interface {
-	AddToken(ctx context.Context, arg AddTokenParams) (string, error)
+	AddToken(ctx context.Context, arg AddTokenParams) (sql.NullString, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteUser(ctx context.Context, id types.UserID) error
 	ExpireToken(ctx context.Context, arg ExpireTokenParams) (User, error)

@@ -5,15 +5,15 @@
 package gendb
 
 import (
-	"time"
+	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 type User struct {
-	ID            types.UserID `db:"id" json:"id"`
-	Username      string       `db:"username" json:"username"`
-	Password      string       `db:"password" json:"password"`
-	Token         string       `db:"token" json:"token"`
-	TokenExpireAt time.Time    `db:"token_expire_at" json:"tokenExpireAt"`
+	ID            types.UserID   `db:"id" json:"id"`
+	Username      string         `db:"username" json:"username"`
+	Password      string         `db:"password" json:"password"`
+	Token         sql.NullString `db:"token" json:"token"`
+	TokenExpireAt sql.NullTime   `db:"token_expire_at" json:"tokenExpireAt"`
 }

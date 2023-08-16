@@ -7,7 +7,7 @@ package gendb
 
 import (
 	"context"
-	"time"
+	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
@@ -21,13 +21,13 @@ RETURNING token
 `
 
 type AddTokenParams struct {
-	Token string       `db:"token" json:"token"`
-	ID    types.UserID `db:"id" json:"id"`
+	Token sql.NullString `db:"token" json:"token"`
+	ID    types.UserID   `db:"id" json:"id"`
 }
 
-func (q *Queries) AddToken(ctx context.Context, arg AddTokenParams) (string, error) {
+func (q *Queries) AddToken(ctx context.Context, arg AddTokenParams) (sql.NullString, error) {
 	row := q.db.QueryRowContext(ctx, addToken, arg.Token, arg.ID)
-	var token string
+	var token sql.NullString
 	err := row.Scan(&token)
 	return token, err
 }
@@ -77,7 +77,7 @@ RETURNING id, username, password, token, token_expire_at
 `
 
 type ExpireTokenParams struct {
-	TokenExpireAt time.Time    `db:"token_expire_at" json:"tokenExpireAt"`
+	TokenExpireAt sql.NullTime `db:"token_expire_at" json:"tokenExpireAt"`
 	ID            types.UserID `db:"id" json:"id"`
 }
 

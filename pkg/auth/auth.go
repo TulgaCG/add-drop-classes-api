@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"net/http"
 	"time"
@@ -20,11 +21,11 @@ const (
 )
 
 type UserParams struct {
-	TokenExpireAt time.Time    `json:"tokenExpireAt"`
-	Username      string       `json:"username"`
-	Password      string       `json:"password"`
-	Token         string       `json:"token"`
-	ID            types.UserID `json:"id"`
+	TokenExpireAt time.Time      `json:"tokenExpireAt"`
+	Username      string         `json:"username"`
+	Password      string         `json:"password"`
+	Token         sql.NullString `json:"token"`
+	ID            types.UserID   `json:"id"`
 }
 
 func GetByUsername(c *gin.Context) {
@@ -76,10 +77,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if time.Since(user.TokenExpireAt.Add(validTime)) > 0 {
+	if time.Since(user.TokenExpireAt.Time.Add(validTime)) > 0 {
 		token, err := db.AddToken(context.Background(), gendb.AddTokenParams{
 			ID:    user.ID,
-			Token: createRandomToken(),
+			Token: sql.NullString{String: createRandomToken(), Valid: true},
 		})
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
@@ -125,8 +126,11 @@ func Logout(c *gin.Context) {
 	}
 
 	_, err = db.ExpireToken(context.Background(), gendb.ExpireTokenParams{
-		ID:            user.ID,
-		TokenExpireAt: time.Now().Add(-validTime),
+		TokenExpireAt: sql.NullTime{
+			Time:  time.Now().Add(-validTime),
+			Valid: true,
+		},
+		ID: user.ID,
 	})
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
