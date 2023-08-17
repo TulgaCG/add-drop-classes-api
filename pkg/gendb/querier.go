@@ -6,16 +6,26 @@ package gendb
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 type Querier interface {
+	CreateRole(ctx context.Context, role string) (string, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteUser(ctx context.Context, id types.UserID) error
+	CreateUserRole(ctx context.Context, arg CreateUserRoleParams) error
+	DeleteRoleByID(ctx context.Context, id int64) error
+	DeleteRoleByName(ctx context.Context, role string) error
+	DeleteUser(ctx context.Context, id types.UserID) (int64, error)
+	DeleteUserRole(ctx context.Context, arg DeleteUserRoleParams) error
+	GetRoleName(ctx context.Context, id int64) (string, error)
 	GetUser(ctx context.Context, id types.UserID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GetUserRole(ctx context.Context, id types.UserID) ([]string, error)
 	ListUsers(ctx context.Context) ([]User, error)
+	UpdateExpirationToken(ctx context.Context, arg UpdateExpirationTokenParams) (User, error)
+	UpdateToken(ctx context.Context, arg UpdateTokenParams) (sql.NullString, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

@@ -20,7 +20,7 @@ func New(path string) (*gendb.Queries, error) {
 
 	// Create tables if not exist
 	if _, err := d.ExecContext(context.Background(), database.Schema); err != nil {
-		return nil, fmt.Errorf("failed to create tables: %w", err)
+		return nil, fmt.Errorf("failed to create tables1: %w", err)
 	}
 
 	return gendb.New(d), nil

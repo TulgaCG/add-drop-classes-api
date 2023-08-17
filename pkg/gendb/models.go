@@ -5,11 +5,26 @@
 package gendb
 
 import (
+	"database/sql"
+
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
+type Role struct {
+	ID   int64  `db:"id" json:"id"`
+	Role string `db:"role" json:"role"`
+}
+
 type User struct {
-	ID       types.UserID `db:"id" json:"id"`
-	Username string       `db:"username" json:"username"`
-	Password string       `db:"password" json:"password"`
+	ID            types.UserID   `db:"id" json:"id"`
+	Username      string         `db:"username" json:"username"`
+	Password      string         `db:"password" json:"password"`
+	Token         sql.NullString `db:"token" json:"token"`
+	TokenExpireAt sql.NullTime   `db:"token_expire_at" json:"tokenExpireAt"`
+}
+
+type UserRole struct {
+	ID     int64  `db:"id" json:"id"`
+	UserID int64  `db:"user_id" json:"userId"`
+	RoleID string `db:"role_id" json:"roleId"`
 }
