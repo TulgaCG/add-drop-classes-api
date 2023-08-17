@@ -11,13 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
-	"github.com/TulgaCG/add-drop-classes-api/pkg/middleware"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/key"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
-)
-
-const (
-	tokenLength = 64
-	validTime   = 1 * time.Hour
 )
 
 type UserParams struct {
@@ -28,30 +23,6 @@ type UserParams struct {
 	ID            types.UserID   `json:"id"`
 }
 
-func GetByUsername(c *gin.Context) {
-	var userToGet UserParams
-	if err := c.Bind(&userToGet); err != nil {
-		c.Status(http.StatusBadRequest)
-		return
-	}
-
-	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to get db",
-		})
-		return
-	}
-
-	user, err := db.GetUserByUsername(context.Background(), userToGet.Username)
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	c.JSON(http.StatusOK, user)
-}
-
 func Login(c *gin.Context) {
 	var userToGet UserParams
 	if err := c.Bind(&userToGet); err != nil {
@@ -60,7 +31,7 @@ func Login(c *gin.Context) {
 		})
 	}
 
-	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -68,7 +39,7 @@ func Login(c *gin.Context) {
 
 	user, err := db.GetUserByUsername(context.Background(), userToGet.Username)
 	if err != nil {
-		c.Status(http.StatusNoContent)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
@@ -77,10 +48,19 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if time.Since(user.TokenExpireAt.Time.Add(validTime)) > 0 {
+	if time.Since(user.TokenExpireAt.Time) > 0 {
 		token, err := db.UpdateToken(context.Background(), gendb.UpdateTokenParams{
 			ID:    user.ID,
 			Token: sql.NullString{String: createRandomToken(), Valid: true},
+		})
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+
+		_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
+			ID:            user.ID,
+			TokenExpireAt: sql.NullTime{Time: time.Now().Add(key.ValidTime), Valid: true},
 		})
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
@@ -102,34 +82,30 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	var userToGet UserParams
-	if err := c.Bind(&userToGet); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "bad request",
-		})
-	}
+	username := c.Request.Header.Get(key.UsernameHeaderKey)
+	token := c.Request.Header.Get(key.TokenHeaderKey)
 
-	db, ok := c.MustGet(middleware.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	user, err := db.GetUserByUsername(context.Background(), userToGet.Username)
+	user, err := db.GetUserByUsername(context.Background(), username)
 	if err != nil {
 		c.Status(http.StatusNoContent)
 		return
 	}
 
-	if user.Token != userToGet.Token {
+	if user.Token.String != token {
 		c.Status(http.StatusNotAcceptable)
 		return
 	}
 
 	_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
 		TokenExpireAt: sql.NullTime{
-			Time:  time.Now().Add(-validTime),
-			Valid: true,
+			Time:  time.Now(),
+			Valid: false,
 		},
 		ID: user.ID,
 	})
@@ -138,14 +114,13 @@ func Logout(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":    "",
-		"username": "",
+		"username": username,
 		"message":  "logged out",
 	})
 }
 
 func createRandomToken() string {
-	b := make([]byte, tokenLength)
+	b := make([]byte, key.TokenLength)
 	if _, err := rand.Read(b); err != nil {
 		return ""
 	}

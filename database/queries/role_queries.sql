@@ -4,6 +4,11 @@ WHERE id = ?;
 
 -- name: CreateRole :one
 INSERT INTO roles(role)
-VALUES (?);
+VALUES (?)
+RETURNING role;
 
--- name: DeleteRole :exec
+-- name: DeleteRoleByName :exec
+DELETE FROM roles WHERE role = ?;
+
+-- name: DeleteRoleByID :exec
+DELETE FROM roles WHERE id = ?;
