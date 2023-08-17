@@ -13,9 +13,12 @@ import (
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	CreateUserRole(ctx context.Context, arg CreateUserRoleParams) error
 	DeleteUser(ctx context.Context, id types.UserID) error
+	DeleteUserRole(ctx context.Context, arg DeleteUserRoleParams) error
 	GetUser(ctx context.Context, id types.UserID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GetUserRole(ctx context.Context, id types.UserID) ([]string, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	UpdateExpirationToken(ctx context.Context, arg UpdateExpirationTokenParams) (User, error)
 	UpdateToken(ctx context.Context, arg UpdateTokenParams) (sql.NullString, error)
