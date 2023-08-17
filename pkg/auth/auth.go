@@ -63,7 +63,7 @@ func Login(c *gin.Context) {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
-		
+
 		_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
 			ID:            user.ID,
 			TokenExpireAt: sql.NullTime{Time: time.Now().Add(key.ValidTime), Valid: true},
