@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -49,15 +50,20 @@ func Login(c *gin.Context) {
 	}
 
 	if time.Since(user.TokenExpireAt.Time) > 0 {
+		generatedToken, err := createRandomToken()
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+		}
+
 		token, err := db.UpdateToken(context.Background(), gendb.UpdateTokenParams{
 			ID:    user.ID,
-			Token: sql.NullString{String: createRandomToken(), Valid: true},
+			Token: sql.NullString{String: generatedToken, Valid: true},
 		})
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
-
+		
 		_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
 			ID:            user.ID,
 			TokenExpireAt: sql.NullTime{Time: time.Now().Add(key.ValidTime), Valid: true},
@@ -119,10 +125,10 @@ func Logout(c *gin.Context) {
 	})
 }
 
-func createRandomToken() string {
+func createRandomToken() (string, error) {
 	b := make([]byte, key.TokenLength)
 	if _, err := rand.Read(b); err != nil {
-		return ""
+		return "", fmt.Errorf("failed to create token: %w", err)
 	}
-	return hex.EncodeToString(b)
+	return hex.EncodeToString(b), nil
 }
