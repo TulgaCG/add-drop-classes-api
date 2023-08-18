@@ -155,6 +155,7 @@ func Delete(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, common.Response{
 			Error: "user to delete not found",
 		})
+		return
 	}
 
 	c.JSON(http.StatusOK, common.Response{})

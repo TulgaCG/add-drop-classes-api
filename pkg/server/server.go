@@ -22,7 +22,7 @@ func New(db *gendb.Queries) *gin.Engine {
 	g2 := r.Group("/api", middleware.DBMiddleware(db))
 	g2.GET("/logout", auth.Logout)
 	g2.POST("/login", auth.Login)
-	g2.POST("/users", user.Post)
+	g2.POST("/users:id", user.Post)
 
 	return r
 }

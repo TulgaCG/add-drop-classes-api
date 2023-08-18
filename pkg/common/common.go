@@ -3,7 +3,7 @@ package common
 import "time"
 
 const (
-	ValidTime         = 1 * time.Minute
+	ValidTime         = 1 * time.Hour
 	TokenLength       = 64
 	DatabaseCtxKey    = "db"
 	UsernameHeaderKey = "Username"
