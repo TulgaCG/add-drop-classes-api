@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
-	"github.com/TulgaCG/add-drop-classes-api/pkg/key"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
@@ -32,7 +32,7 @@ func Login(c *gin.Context) {
 		})
 	}
 
-	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -66,7 +66,7 @@ func Login(c *gin.Context) {
 
 		_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
 			ID:            user.ID,
-			TokenExpireAt: sql.NullTime{Time: time.Now().Add(key.ValidTime), Valid: true},
+			TokenExpireAt: sql.NullTime{Time: time.Now().Add(common.ValidTime), Valid: true},
 		})
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
@@ -88,10 +88,10 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	username := c.Request.Header.Get(key.UsernameHeaderKey)
-	token := c.Request.Header.Get(key.TokenHeaderKey)
+	username := c.Request.Header.Get(common.UsernameHeaderKey)
+	token := c.Request.Header.Get(common.TokenHeaderKey)
 
-	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -126,7 +126,7 @@ func Logout(c *gin.Context) {
 }
 
 func createRandomToken() (string, error) {
-	b := make([]byte, key.TokenLength)
+	b := make([]byte, common.TokenLength)
 	if _, err := rand.Read(b); err != nil {
 		return "", fmt.Errorf("failed to create token: %w", err)
 	}

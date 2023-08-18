@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
-	"github.com/TulgaCG/add-drop-classes-api/pkg/key"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
@@ -22,7 +22,7 @@ func Post(c *gin.Context) {
 		return
 	}
 
-	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -42,7 +42,7 @@ func Post(c *gin.Context) {
 }
 
 func Get(c *gin.Context) {
-	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -64,7 +64,7 @@ func Get(c *gin.Context) {
 }
 
 func GetByID(c *gin.Context) {
-	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -101,7 +101,7 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",
@@ -125,7 +125,7 @@ func Update(c *gin.Context) {
 }
 
 func Delete(c *gin.Context) {
-	db, ok := c.MustGet(key.DatabaseCtxKey).(*gendb.Queries)
+	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get db",

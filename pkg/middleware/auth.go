@@ -8,13 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
-	"github.com/TulgaCG/add-drop-classes-api/pkg/key"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 )
 
 func AuthMiddleware(db *gendb.Queries) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		username := c.Request.Header.Get(key.UsernameHeaderKey)
-		token := c.Request.Header.Get(key.TokenHeaderKey)
+		username := c.Request.Header.Get(common.UsernameHeaderKey)
+		token := c.Request.Header.Get(common.TokenHeaderKey)
 
 		user, err := db.GetUserByUsername(context.Background(), username)
 		if err != nil {
