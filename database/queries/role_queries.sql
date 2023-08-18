@@ -1,11 +1,15 @@
--- name: GetRoleName :one
-SELECT role FROM roles
+-- name: GetRole :one
+SELECT * FROM roles
 WHERE id = ?;
+
+-- name: GetRoleByName :one
+SELECT * FROM roles
+WHERe role = ?;
 
 -- name: CreateRole :one
 INSERT INTO roles(role)
 VALUES (?)
-RETURNING role;
+RETURNING *;
 
 -- name: DeleteRoleByName :exec
 DELETE FROM roles WHERE role = ?;

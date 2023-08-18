@@ -12,13 +12,14 @@ import (
 const createRole = `-- name: CreateRole :one
 INSERT INTO roles(role)
 VALUES (?)
-RETURNING role
+RETURNING id, role
 `
 
-func (q *Queries) CreateRole(ctx context.Context, role string) (string, error) {
+func (q *Queries) CreateRole(ctx context.Context, role string) (Role, error) {
 	row := q.db.QueryRowContext(ctx, createRole, role)
-	err := row.Scan(&role)
-	return role, err
+	var i Role
+	err := row.Scan(&i.ID, &i.Role)
+	return i, err
 }
 
 const deleteRoleByID = `-- name: DeleteRoleByID :exec
@@ -39,14 +40,26 @@ func (q *Queries) DeleteRoleByName(ctx context.Context, role string) error {
 	return err
 }
 
-const getRoleName = `-- name: GetRoleName :one
-SELECT role FROM roles
+const getRole = `-- name: GetRole :one
+SELECT id, role FROM roles
 WHERE id = ?
 `
 
-func (q *Queries) GetRoleName(ctx context.Context, id int64) (string, error) {
-	row := q.db.QueryRowContext(ctx, getRoleName, id)
-	var role string
-	err := row.Scan(&role)
-	return role, err
+func (q *Queries) GetRole(ctx context.Context, id int64) (Role, error) {
+	row := q.db.QueryRowContext(ctx, getRole, id)
+	var i Role
+	err := row.Scan(&i.ID, &i.Role)
+	return i, err
+}
+
+const getRoleByName = `-- name: GetRoleByName :one
+SELECT id, role FROM roles
+WHERe role = ?
+`
+
+func (q *Queries) GetRoleByName(ctx context.Context, role string) (Role, error) {
+	row := q.db.QueryRowContext(ctx, getRoleByName, role)
+	var i Role
+	err := row.Scan(&i.ID, &i.Role)
+	return i, err
 }

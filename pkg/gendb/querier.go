@@ -12,14 +12,15 @@ import (
 )
 
 type Querier interface {
-	CreateRole(ctx context.Context, role string) (string, error)
+	CreateRole(ctx context.Context, role string) (Role, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserRole(ctx context.Context, arg CreateUserRoleParams) error
 	DeleteRoleByID(ctx context.Context, id int64) error
 	DeleteRoleByName(ctx context.Context, role string) error
 	DeleteUser(ctx context.Context, id types.UserID) (int64, error)
 	DeleteUserRole(ctx context.Context, arg DeleteUserRoleParams) error
-	GetRoleName(ctx context.Context, id int64) (string, error)
+	GetRole(ctx context.Context, id int64) (Role, error)
+	GetRoleByName(ctx context.Context, role string) (Role, error)
 	GetUser(ctx context.Context, id types.UserID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GetUserRole(ctx context.Context, id types.UserID) ([]string, error)
