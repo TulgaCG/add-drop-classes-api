@@ -12,13 +12,17 @@ import (
 func New(db *gendb.Queries) *gin.Engine {
 	r := gin.Default()
 
-	r.GET("/users", middleware.DBMiddleware(db), middleware.AuthMiddleware(db), user.Get)
-	r.GET("/users/:id", middleware.DBMiddleware(db), middleware.AuthMiddleware(db), user.GetByID)
-	r.PUT("/users", middleware.DBMiddleware(db), middleware.AuthMiddleware(db), user.Update)
-	r.POST("/users", middleware.DBMiddleware(db), user.Post)
-	r.POST("/login", middleware.DBMiddleware(db), auth.Login)
-	r.GET("/logout", middleware.DBMiddleware(db), auth.Logout)
-	r.DELETE("/users/:id", middleware.DBMiddleware(db), middleware.AuthMiddleware(db), user.Delete)
+	// Auth required requests
+	g1 := r.Group("/api", middleware.DBMiddleware(db), middleware.AuthMiddleware(db))
+	g1.GET("/users", user.Get)
+	g1.GET("/users/:id", user.GetByID)
+	g1.PUT("/users", user.Update)
+	g1.DELETE("/users", user.Delete)
+
+	g2 := r.Group("/api", middleware.DBMiddleware(db))
+	g2.GET("/logout", auth.Logout)
+	g2.POST("/login", auth.Login)
+	g2.POST("/users", user.Post)
 
 	return r
 }
