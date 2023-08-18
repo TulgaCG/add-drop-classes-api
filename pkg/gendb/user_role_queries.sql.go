@@ -12,40 +12,37 @@ import (
 )
 
 const createUserRole = `-- name: CreateUserRole :exec
-INSERT INTO user_roles (user_id, role_id)
-SELECT ?, roles.id
-FROM roles
-WHERE roles.role = ?
+INSERT INTO user_roles (user_id, role_id) 
+VALUES (?, ?)
 `
 
 type CreateUserRoleParams struct {
-	UserID int64  `db:"user_id" json:"userId"`
-	Role   string `db:"role" json:"role"`
+	UserID types.UserID `db:"user_id" json:"userId"`
+	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }
 
 func (q *Queries) CreateUserRole(ctx context.Context, arg CreateUserRoleParams) error {
-	_, err := q.db.ExecContext(ctx, createUserRole, arg.UserID, arg.Role)
+	_, err := q.db.ExecContext(ctx, createUserRole, arg.UserID, arg.RoleID)
 	return err
 }
 
-const deleteUserRole = `-- name: DeleteUserRole :exec
+const deleteUserRole = `-- name: DeleteUserRole :execrows
 DELETE FROM user_roles
 WHERE user_id = ?
-AND role_id = (
-    SELECT id
-    FROM roles
-    WHERE role = ?
-)
+AND role_id = ?
 `
 
 type DeleteUserRoleParams struct {
-	UserID int64  `db:"user_id" json:"userId"`
-	Role   string `db:"role" json:"role"`
+	UserID types.UserID `db:"user_id" json:"userId"`
+	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }
 
-func (q *Queries) DeleteUserRole(ctx context.Context, arg DeleteUserRoleParams) error {
-	_, err := q.db.ExecContext(ctx, deleteUserRole, arg.UserID, arg.Role)
-	return err
+func (q *Queries) DeleteUserRole(ctx context.Context, arg DeleteUserRoleParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteUserRole, arg.UserID, arg.RoleID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const getUserRole = `-- name: GetUserRole :many

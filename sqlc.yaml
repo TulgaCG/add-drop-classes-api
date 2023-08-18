@@ -16,3 +16,12 @@ sql:
           
           - column: lectures.id
             go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.LectureID
+
+          - column: roles.id
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.RoleID
+
+          - column: user_roles.user_id
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.UserID
+
+          - column: user_roles.role_id
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.RoleID

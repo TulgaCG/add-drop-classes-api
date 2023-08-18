@@ -21,6 +21,8 @@ func New(db *gendb.Queries) *gin.Engine {
 	g1.PUT("/users", user.Update)
 	g1.DELETE("/users/:id", user.Delete)
 	g1.DELETE("/roles/:role", role.Delete)
+	g1.POST("/roles/add", role.AddToUser)
+	g1.DELETE("/roles/delete/:user/:role", role.RemoveFromUser)
 
 	g2 := r.Group("/api", middleware.DBMiddleware(db))
 	g2.GET("/logout", auth.Logout)

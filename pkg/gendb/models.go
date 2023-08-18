@@ -11,8 +11,8 @@ import (
 )
 
 type Role struct {
-	ID   int64  `db:"id" json:"id"`
-	Role string `db:"role" json:"role"`
+	ID   types.RoleID `db:"id" json:"id"`
+	Role string       `db:"role" json:"role"`
 }
 
 type User struct {
@@ -24,7 +24,7 @@ type User struct {
 }
 
 type UserRole struct {
-	ID     int64  `db:"id" json:"id"`
-	UserID int64  `db:"user_id" json:"userId"`
-	RoleID string `db:"role_id" json:"roleId"`
+	ID     int64        `db:"id" json:"id"`
+	UserID types.UserID `db:"user_id" json:"userId"`
+	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }

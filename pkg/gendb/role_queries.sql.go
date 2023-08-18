@@ -7,6 +7,8 @@ package gendb
 
 import (
 	"context"
+
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 const createRole = `-- name: CreateRole :one
@@ -26,7 +28,7 @@ const deleteRoleByID = `-- name: DeleteRoleByID :exec
 DELETE FROM roles WHERE id = ?
 `
 
-func (q *Queries) DeleteRoleByID(ctx context.Context, id int64) error {
+func (q *Queries) DeleteRoleByID(ctx context.Context, id types.RoleID) error {
 	_, err := q.db.ExecContext(ctx, deleteRoleByID, id)
 	return err
 }
@@ -45,7 +47,7 @@ SELECT id, role FROM roles
 WHERE id = ?
 `
 
-func (q *Queries) GetRole(ctx context.Context, id int64) (Role, error) {
+func (q *Queries) GetRole(ctx context.Context, id types.RoleID) (Role, error) {
 	row := q.db.QueryRowContext(ctx, getRole, id)
 	var i Role
 	err := row.Scan(&i.ID, &i.Role)
