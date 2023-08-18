@@ -9,3 +9,8 @@ const (
 	UsernameHeaderKey = "Username"
 	TokenHeaderKey    = "Token"
 )
+
+type Response struct {
+	Data  any    `json:"data"`
+	Error string `json:"error"`
+}

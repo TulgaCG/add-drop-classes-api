@@ -18,22 +18,22 @@ func AuthMiddleware(db *gendb.Queries) gin.HandlerFunc {
 
 		user, err := db.GetUserByUsername(context.Background(), username)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "login user not found",
+			c.AbortWithStatusJSON(http.StatusBadRequest, common.Response{
+				Error: "login user not found",
 			})
 			return
 		}
 
 		if user.Token.String != token {
-			c.AbortWithStatusJSON(http.StatusNotAcceptable, gin.H{
-				"error": "login required",
+			c.AbortWithStatusJSON(http.StatusNotAcceptable, common.Response{
+				Error: "login required",
 			})
 			return
 		}
 
 		if time.Since(user.TokenExpireAt.Time) > 0 {
-			c.AbortWithStatusJSON(http.StatusNotAcceptable, gin.H{
-				"error": "token expired",
+			c.AbortWithStatusJSON(http.StatusNotAcceptable, common.Response{
+				Error: "token expired",
 			})
 			return
 		}

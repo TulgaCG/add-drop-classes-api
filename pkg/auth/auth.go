@@ -24,35 +24,48 @@ type UserParams struct {
 	ID            types.UserID   `json:"id"`
 }
 
+type LoginResponse struct {
+	Username string `json:"username"`
+	Token    string `json:"token"`
+}
+
 func Login(c *gin.Context) {
 	var userToGet UserParams
 	if err := c.Bind(&userToGet); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "bad request",
+		c.JSON(http.StatusBadRequest, common.Response{
+			Error: "bad request",
 		})
 	}
 
 	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, common.Response{
+			Error: "failed to get db",
+		})
 		return
 	}
 
 	user, err := db.GetUserByUsername(context.Background(), userToGet.Username)
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, common.Response{
+			Error: "failed to get user by username",
+		})
 		return
 	}
 
 	if user.Password != userToGet.Password {
-		c.Status(http.StatusNotAcceptable)
+		c.JSON(http.StatusNotAcceptable, common.Response{
+			Error: "wrong password",
+		})
 		return
 	}
 
 	if time.Since(user.TokenExpireAt.Time) > 0 {
 		generatedToken, err := createRandomToken()
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, common.Response{
+				Error: "failed to generate token",
+			})
 		}
 
 		token, err := db.UpdateToken(context.Background(), gendb.UpdateTokenParams{
@@ -60,7 +73,9 @@ func Login(c *gin.Context) {
 			Token: sql.NullString{String: generatedToken, Valid: true},
 		})
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, common.Response{
+				Error: "failed to update token",
+			})
 			return
 		}
 
@@ -69,20 +84,24 @@ func Login(c *gin.Context) {
 			TokenExpireAt: sql.NullTime{Time: time.Now().Add(common.ValidTime), Valid: true},
 		})
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, common.Response{
+				Error: "failed to update token expiration date",
+			})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"token":    token,
-			"username": user.Username,
-			"message":  "logged in",
+		c.JSON(http.StatusOK, common.Response{
+			Data: LoginResponse{
+				Username: user.Username,
+				Token:    token.String,
+			},
 		})
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"token":    user.Token,
-			"username": user.Username,
-			"message":  "logged in",
+		c.JSON(http.StatusOK, common.Response{
+			Data: LoginResponse{
+				Username: user.Username,
+				Token:    user.Token.String,
+			},
 		})
 	}
 }
@@ -93,18 +112,24 @@ func Logout(c *gin.Context) {
 
 	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, common.Response{
+			Error: "failed to get db",
+		})
 		return
 	}
 
 	user, err := db.GetUserByUsername(context.Background(), username)
 	if err != nil {
-		c.Status(http.StatusNoContent)
+		c.JSON(http.StatusNotAcceptable, common.Response{
+			Error: "username or database not found",
+		})
 		return
 	}
 
 	if user.Token.String != token {
-		c.Status(http.StatusNotAcceptable)
+		c.JSON(http.StatusNotAcceptable, common.Response{
+			Error: "not logged in",
+		})
 		return
 	}
 
@@ -116,12 +141,13 @@ func Logout(c *gin.Context) {
 		ID: user.ID,
 	})
 	if err != nil {
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, common.Response{
+			Error: "failed to update token expiration date",
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"username": username,
-		"message":  "logged out",
+	c.JSON(http.StatusOK, common.Response{
+		Data: username,
 	})
 }
 
