@@ -18,5 +18,5 @@ bin/
 .idea
 
 # Db files
-.sqlite
-mockdata.sql
+*.sqlite
+*.db
