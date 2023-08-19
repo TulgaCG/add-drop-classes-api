@@ -2,161 +2,63 @@ package user
 
 import (
 	"context"
-	"net/http"
-	"strconv"
+	"fmt"
 
-	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 
-	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
-func Post(c *gin.Context) {
-	var req gendb.CreateUserParams
-	err := c.Bind(&req)
+func createUser(ctx context.Context, db *gendb.Queries, username, password string) (gendb.CreateUserRow, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "bad request",
-		})
-		return
+		return gendb.CreateUserRow{}, fmt.Errorf("failed to generate hashed password: %w", err)
 	}
 
-	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to get db",
-		})
-		return
-	}
-
-	newUser, err := db.CreateUser(context.Background(), req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to create user",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, common.Response{
-		Data: newUser,
-	})
-}
-
-func Get(c *gin.Context) {
-	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to get db",
-		})
-		return
-	}
-
-	users, err := db.ListUsers(context.Background())
-	if err != nil {
-		c.JSON(http.StatusNoContent, common.Response{
-			Error: "failed to list users",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"users": users,
-	})
-}
-
-func GetByID(c *gin.Context) {
-	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to get db",
-		})
-		return
-	}
-
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "id must be integer",
-		})
-		return
-	}
-
-	u, err := db.GetUser(context.Background(), types.UserID(id))
-	if err != nil {
-		c.JSON(http.StatusNoContent, common.Response{
-			Error: "failed to get user by id",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, u)
-}
-
-func Update(c *gin.Context) {
-	var req gendb.UpdateUserParams
-	err := c.Bind(&req)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "bad request",
-		})
-		return
-	}
-
-	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to get db",
-		})
-		return
-	}
-
-	u, err := db.UpdateUser(context.Background(), gendb.UpdateUserParams{
-		Username: req.Username,
-		Password: req.Password,
-		ID:       req.ID,
+	row, err := db.CreateUser(ctx, gendb.CreateUserParams{
+		Username: username,
+		Password: string(hashedPassword),
 	})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "failed to update user",
-		})
-		return
+		return gendb.CreateUserRow{}, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	c.JSON(http.StatusOK, u)
+	return row, nil
 }
 
-func Delete(c *gin.Context) {
-	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to get db",
-		})
-		return
-	}
-
-	id, err := strconv.Atoi(c.Param("id"))
+func listUsers(ctx context.Context, db *gendb.Queries) ([]gendb.ListUsersRow, error) {
+	rows, err := db.ListUsers(ctx)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "failed to get id",
-		})
-		return
+		return nil, fmt.Errorf("failed to list users: %w", err)
 	}
 
-	rows, err := db.DeleteUser(context.Background(), types.UserID(id))
+	return rows, nil
+}
+
+func getUser(ctx context.Context, db *gendb.Queries, id types.UserID) (gendb.GetUserRow, error) {
+	row, err := db.GetUser(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusNoContent, common.Response{
-			Error: "failed to delete user",
-		})
-		return
+		return gendb.GetUserRow{}, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if rows <= 0 {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "user to delete not found",
-		})
-		return
+	return row, nil
+}
+
+func getUserByUsername(ctx context.Context, db *gendb.Queries, username string) (gendb.GetUserByUsernameRow, error) {
+	row, err := db.GetUserByUsername(ctx, username)
+	if err != nil {
+		return gendb.GetUserByUsernameRow{}, fmt.Errorf("failed to get user by username: %w", err)
 	}
 
-	c.JSON(http.StatusOK, common.Response{})
+	return row, nil
+}
+
+func updateUser(ctx context.Context, db *gendb.Queries, params gendb.UpdateUserParams) (gendb.UpdateUserRow, error) {
+	u, err := db.UpdateUser(ctx, params)
+	if err != nil {
+		return gendb.UpdateUserRow{}, fmt.Errorf("failed to update the user: %w", err)
+	}
+
+	return u, nil
 }

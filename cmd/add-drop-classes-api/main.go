@@ -1,23 +1,20 @@
 package main
 
 import (
+	"github.com/TulgaCG/add-drop-classes-api/pkg/app"
 	"log"
-
-	"github.com/TulgaCG/add-drop-classes-api/pkg/database"
-	"github.com/TulgaCG/add-drop-classes-api/pkg/server"
+	"log/slog"
+	"os"
 )
 
 const dbPath = "test.sqlite"
 
 func main() {
-	db, err := database.New(dbPath)
-	if err != nil {
-		log.Fatalf("failed to create db connection: %s", err.Error())
-	}
-
-	s := server.New(db)
-	err = s.Run()
-	if err != nil {
-		log.Fatalf("failed to run server instance: %s", err.Error())
+	slogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
+	if err := app.Run(&app.Conf{
+		DbPath: dbPath,
+		Log:    slogger,
+	}); err != nil {
+		log.Fatal("failed to run application: %w", err)
 	}
 }

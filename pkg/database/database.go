@@ -12,14 +12,14 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 )
 
-func New(path string) (*gendb.Queries, error) {
+func New(ctx context.Context, path string) (*gendb.Queries, error) {
 	d, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create db: %w", err)
 	}
 
 	// Create tables if not exist
-	if _, err := d.ExecContext(context.Background(), database.Schema); err != nil {
+	if _, err := d.ExecContext(ctx, database.Schema); err != nil {
 		return nil, fmt.Errorf("failed to create tables1: %w", err)
 	}
 

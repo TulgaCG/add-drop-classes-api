@@ -1,6 +1,8 @@
 package server
 
 import (
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/auth"
@@ -9,20 +11,18 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/user"
 )
 
-func New(db *gendb.Queries) *gin.Engine {
+func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	r := gin.Default()
 
-	// Auth required requests
-	g1 := r.Group("/api", middleware.DBMiddleware(db), middleware.AuthMiddleware(db))
-	g1.GET("/users", user.Get)
-	g1.GET("/users/:id", user.GetByID)
-	g1.PUT("/users", user.Update)
-	g1.DELETE("/users", user.Delete)
+	g1 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db))
+	g1.GET("/logout", auth.LogoutHandler)
+	g1.POST("/login", auth.LoginHandler)
+	g1.POST("/users", user.CreateHandler)
 
-	g2 := r.Group("/api", middleware.DBMiddleware(db))
-	g2.GET("/logout", auth.Logout)
-	g2.POST("/login", auth.Login)
-	g2.POST("/users:id", user.Post)
+	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.AuthMiddleware(db))
+	g2.GET("/users", user.ListHandler)
+	g2.GET("/users/:id", user.GetHandler)
+	g2.PUT("/users", user.UpdateHandler)
 
 	return r
 }

@@ -6,155 +6,84 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 
-	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
-	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
-type UserParams struct {
-	TokenExpireAt time.Time      `json:"tokenExpireAt"`
-	Username      string         `json:"username"`
-	Password      string         `json:"password"`
-	Token         sql.NullString `json:"token"`
-	ID            types.UserID   `json:"id"`
-}
+const (
+	tokenLen      = 64
+	tokenDuration = 1 * time.Hour
+)
 
-type LoginResponse struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-}
-
-func Login(c *gin.Context) {
-	var userToGet UserParams
-	if err := c.Bind(&userToGet); err != nil {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "bad request",
-		})
-	}
-
-	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to get db",
-		})
-		return
-	}
-
-	user, err := db.GetUserByUsername(context.Background(), userToGet.Username)
+func login(ctx context.Context, db *gendb.Queries, username, password string) (gendb.UpdateTokenRow, error) {
+	u, err := getUserCredentialsWithUsername(ctx, db, username)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, common.Response{
-			Error: "failed to get user by username",
-		})
-		return
+		return gendb.UpdateTokenRow{}, fmt.Errorf("failed to get user with username including credentials: %w", err)
 	}
 
-	if user.Password != userToGet.Password {
-		c.JSON(http.StatusNotAcceptable, common.Response{
-			Error: "wrong password",
-		})
-		return
+	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
+		return gendb.UpdateTokenRow{}, fmt.Errorf("invalid username or password")
 	}
 
-	if time.Since(user.TokenExpireAt.Time) > 0 {
-		generatedToken, err := createRandomToken()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, common.Response{
-				Error: "failed to generate token",
-			})
-		}
-
-		token, err := db.UpdateToken(context.Background(), gendb.UpdateTokenParams{
-			ID:    user.ID,
-			Token: sql.NullString{String: generatedToken, Valid: true},
-		})
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, common.Response{
-				Error: "failed to update token",
-			})
-			return
-		}
-
-		_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
-			ID:            user.ID,
-			TokenExpireAt: sql.NullTime{Time: time.Now().Add(common.ValidTime), Valid: true},
-		})
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, common.Response{
-				Error: "failed to update token expiration date",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, common.Response{
-			Data: LoginResponse{
-				Username: user.Username,
-				Token:    token.String,
-			},
-		})
-	} else {
-		c.JSON(http.StatusOK, common.Response{
-			Data: LoginResponse{
-				Username: user.Username,
-				Token:    user.Token.String,
-			},
-		})
+	token, err := createRandomToken()
+	if err != nil {
+		return gendb.UpdateTokenRow{}, fmt.Errorf("failed to create token: %w", err)
 	}
+
+	row, err := db.UpdateToken(ctx, gendb.UpdateTokenParams{
+		ID: u.ID,
+		Token: sql.NullString{
+			String: token,
+			Valid:  true,
+		},
+		TokenExpireAt: sql.NullTime{
+			Time:  time.Now().Add(tokenDuration),
+			Valid: true,
+		},
+	})
+	if err != nil {
+		return gendb.UpdateTokenRow{}, fmt.Errorf("failed to update token: %w", err)
+	}
+
+	return row, nil
 }
 
-func Logout(c *gin.Context) {
-	username := c.Request.Header.Get(common.UsernameHeaderKey)
-	token := c.Request.Header.Get(common.TokenHeaderKey)
-
-	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to get db",
-		})
-		return
-	}
-
-	user, err := db.GetUserByUsername(context.Background(), username)
+func logout(ctx context.Context, db *gendb.Queries, username string) error {
+	user, err := db.GetUserCredentialsWithUsername(ctx, username)
 	if err != nil {
-		c.JSON(http.StatusNotAcceptable, common.Response{
-			Error: "username or database not found",
-		})
-		return
+		return fmt.Errorf("failed to get user by username: %w", err)
 	}
 
-	if user.Token.String != token {
-		c.JSON(http.StatusNotAcceptable, common.Response{
-			Error: "not logged in",
-		})
-		return
-	}
-
-	_, err = db.UpdateExpirationToken(context.Background(), gendb.UpdateExpirationTokenParams{
+	if err := db.UpdateTokenExpirationDate(ctx, gendb.UpdateTokenExpirationDateParams{
 		TokenExpireAt: sql.NullTime{
 			Time:  time.Now(),
 			Valid: false,
 		},
 		ID: user.ID,
-	})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, common.Response{
-			Error: "failed to update token expiration date",
-		})
+	}); err != nil {
+		return fmt.Errorf("failed to update token expiration date: %w", err)
 	}
 
-	c.JSON(http.StatusOK, common.Response{
-		Data: username,
-	})
+	return nil
+}
+
+func getUserCredentialsWithUsername(ctx context.Context, db *gendb.Queries, username string) (gendb.User, error) {
+	row, err := db.GetUserCredentialsWithUsername(ctx, username)
+	if err != nil {
+		return gendb.User{}, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return row, nil
 }
 
 func createRandomToken() (string, error) {
-	b := make([]byte, common.TokenLength)
+	b := make([]byte, tokenLen)
 	if _, err := rand.Read(b); err != nil {
 		return "", fmt.Errorf("failed to create token: %w", err)
 	}
+
 	return hex.EncodeToString(b), nil
 }
