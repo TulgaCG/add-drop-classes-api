@@ -13,6 +13,12 @@ sql:
         overrides:
           - column: users.id
             go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.UserID
-          
+
+          - column: "*.user_id"
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.UserID
+
           - column: lectures.id
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.LectureID
+
+          - column: "*.lecture_id"
             go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.LectureID

@@ -26,5 +26,6 @@ lint:
 generate: generate-sqlc-code
 
 .PHONY: generate-sqlc-code
-generate-sqlc-code:	
+generate-sqlc-code:
+	@ rm -rf pkg/gendb
 	@ sqlc generate --file=sqlc.yaml

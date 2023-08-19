@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"context"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -9,32 +10,49 @@ import (
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/server/response"
 )
+
+const tokenHeaderKey = "Token"
 
 func AuthMiddleware(db *gendb.Queries) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindLoggerInCtx))
+			return
+		}
+
 		username := c.Request.Header.Get(common.UsernameHeaderKey)
-		token := c.Request.Header.Get(common.TokenHeaderKey)
+		if username == "" {
+			log.Error("no username header")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+			return
+		}
 
-		user, err := db.GetUserByUsername(context.Background(), username)
+		token := c.Request.Header.Get(tokenHeaderKey)
+		if token == "" {
+			log.Error("no token header")
+			c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+			return
+		}
+
+		u, err := db.GetUserCredentialsWithUsername(c, username)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, common.Response{
-				Error: "login user not found",
-			})
+			log.Error("no database in gin context")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
 			return
 		}
 
-		if user.Token.String != token {
-			c.AbortWithStatusJSON(http.StatusNotAcceptable, common.Response{
-				Error: "login required",
-			})
+		if u.Token.String != token {
+			log.Error("failed to match user token with the header token")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
 			return
 		}
 
-		if time.Since(user.TokenExpireAt.Time) > 0 {
-			c.AbortWithStatusJSON(http.StatusNotAcceptable, common.Response{
-				Error: "token expired",
-			})
+		if time.Since(u.TokenExpireAt.Time) > 0 {
+			log.Error("token expired")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(fmt.Errorf("token expired")))
 			return
 		}
 
