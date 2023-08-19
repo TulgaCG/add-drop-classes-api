@@ -10,8 +10,8 @@ import (
 )
 
 type Conf struct {
-	DbPath string
 	Log    *slog.Logger
+	DbPath string
 }
 
 func Run(conf *Conf) error {

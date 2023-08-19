@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/TulgaCG/add-drop-classes-api/pkg/app"
 	"log"
 	"log/slog"
 	"os"
+
+	"github.com/TulgaCG/add-drop-classes-api/pkg/app"
 )
 
 const dbPath = "test.sqlite"

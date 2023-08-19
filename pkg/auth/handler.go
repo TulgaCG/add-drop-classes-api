@@ -28,7 +28,7 @@ func LoginHandler(c *gin.Context) {
 
 	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
-		log.Error(err.Error())
+		log.Error(response.ErrFailedToFindDBInCtx.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindDBInCtx))
 		return
 	}
