@@ -36,7 +36,7 @@ func PermMiddleware(db *gendb.Queries) gin.HandlerFunc {
 		roles, err := db.GetUserRoles(c, user.ID)
 		if err != nil {
 			log.Error(err.Error())
-			c.AbortWithStatusJSON(http.StatusNoContent, response.WithError(response.ErrContentNotFound))
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.WithError(response.ErrContentNotFound))
 			return
 		}
 
