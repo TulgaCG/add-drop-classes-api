@@ -21,7 +21,12 @@ func New(ctx context.Context, path string) (*gendb.Queries, error) {
 
 	// Create tables if not exist
 	if _, err := d.ExecContext(ctx, database.Schema); err != nil {
-		return nil, fmt.Errorf("failed to create tables1: %w", err)
+		return nil, fmt.Errorf("failed to create tables: %w", err)
+	}
+
+	// Create roles if not exist
+	if _, err := d.ExecContext(ctx, database.Roles); err != nil {
+		return nil, fmt.Errorf("failed to create roles: %w", err)
 	}
 
 	return gendb.New(d), nil
@@ -43,6 +48,10 @@ func NewTestDb(ctx context.Context) (*gendb.Queries, error) {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(fmt.Sprintf("testpassword%d", i)), bcrypt.DefaultCost)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate hashed password: %w", err)
+		}
+
+		if _, err := db.CreateRole(ctx, fmt.Sprintf("testrole%d", i)); err != nil {
+			return nil, err
 		}
 
 		if _, err := db.CreateUser(ctx, gendb.CreateUserParams{

@@ -5,3 +5,9 @@ CREATE TABLE IF NOT EXISTS users (
     token VARCHAR(64),
     token_expire_at DATETIME
 );
+
+CREATE TABLE IF NOT EXISTS roles (
+    id INTEGER PRIMARY KEY,
+    role VARCHAR(255) NOT NULL,
+    UNIQUE(id, role)
+);
