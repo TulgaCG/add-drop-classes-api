@@ -10,7 +10,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/TulgaCG/add-drop-classes-api/database"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
 func New(ctx context.Context, path string) (*gendb.Queries, error) {
@@ -54,12 +56,20 @@ func NewTestDb(ctx context.Context) (*gendb.Queries, error) {
 			return nil, err
 		}
 
+		if _, err := db.AddRoleToUser(ctx, gendb.AddRoleToUserParams{UserID: types.UserID(i), RoleID: common.DefaultRole}); err != nil {
+			return nil, err
+		}
+
 		if _, err := db.CreateUser(ctx, gendb.CreateUserParams{
 			Username: fmt.Sprintf("testuser%d", i),
 			Password: string(hashedPassword),
 		}); err != nil {
 			return nil, err
 		}
+	}
+
+	if _, err = db.AddRoleToUser(ctx, gendb.AddRoleToUserParams{UserID: types.UserID(1), RoleID: types.RoleID(1)}); err != nil {
+		return nil, err
 	}
 
 	return db, nil
