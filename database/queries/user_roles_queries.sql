@@ -8,7 +8,7 @@ WHERE u.id = ?;
 -- name: AddRoleToUser :one
 INSERT INTO user_roles (user_id, role_id) VALUES (
     ?, ?
-) RETURNING *;
+) RETURNING user_id, role_id;
 
--- name: RemoveRoleFromUser :exec
+-- name: RemoveRoleFromUser :execrows
 DELETE FROM user_roles WHERE user_id = ? AND role_id = ?;

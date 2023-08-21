@@ -14,18 +14,23 @@ import (
 const addRoleToUser = `-- name: AddRoleToUser :one
 INSERT INTO user_roles (user_id, role_id) VALUES (
     ?, ?
-) RETURNING id, user_id, role_id
+) RETURNING user_id, role_id
 `
 
 type AddRoleToUserParams struct {
 	UserID types.UserID `db:"user_id" json:"userId"`
-	RoleID int64        `db:"role_id" json:"roleId"`
+	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }
 
-func (q *Queries) AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (UserRole, error) {
+type AddRoleToUserRow struct {
+	UserID types.UserID `db:"user_id" json:"userId"`
+	RoleID types.RoleID `db:"role_id" json:"roleId"`
+}
+
+func (q *Queries) AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (AddRoleToUserRow, error) {
 	row := q.db.QueryRowContext(ctx, addRoleToUser, arg.UserID, arg.RoleID)
-	var i UserRole
-	err := row.Scan(&i.ID, &i.UserID, &i.RoleID)
+	var i AddRoleToUserRow
+	err := row.Scan(&i.UserID, &i.RoleID)
 	return i, err
 }
 
@@ -60,16 +65,19 @@ func (q *Queries) GetUserRoles(ctx context.Context, id types.UserID) ([]string, 
 	return items, nil
 }
 
-const removeRoleFromUser = `-- name: RemoveRoleFromUser :exec
+const removeRoleFromUser = `-- name: RemoveRoleFromUser :execrows
 DELETE FROM user_roles WHERE user_id = ? AND role_id = ?
 `
 
 type RemoveRoleFromUserParams struct {
 	UserID types.UserID `db:"user_id" json:"userId"`
-	RoleID int64        `db:"role_id" json:"roleId"`
+	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }
 
-func (q *Queries) RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) error {
-	_, err := q.db.ExecContext(ctx, removeRoleFromUser, arg.UserID, arg.RoleID)
-	return err
+func (q *Queries) RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, removeRoleFromUser, arg.UserID, arg.RoleID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

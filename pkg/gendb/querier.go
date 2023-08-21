@@ -11,7 +11,7 @@ import (
 )
 
 type Querier interface {
-	AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (UserRole, error)
+	AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (AddRoleToUserRow, error)
 	CreateRole(ctx context.Context, role string) (Role, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteRole(ctx context.Context, role string) (int64, error)
@@ -21,7 +21,7 @@ type Querier interface {
 	GetUserCredentialsWithUsername(ctx context.Context, username string) (User, error)
 	GetUserRoles(ctx context.Context, id types.UserID) ([]string, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
-	RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) error
+	RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) (int64, error)
 	UpdateToken(ctx context.Context, arg UpdateTokenParams) (UpdateTokenRow, error)
 	UpdateTokenExpirationDate(ctx context.Context, arg UpdateTokenExpirationDateParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error)
