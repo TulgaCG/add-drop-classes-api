@@ -21,17 +21,17 @@ func CreateHandler(c *gin.Context) {
 		return
 	}
 
-	var req CreateUserRequest
-	if err := c.BindJSON(&req); err != nil {
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidRequestFormat))
-		return
-	}
-
 	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		log.Error(response.ErrFailedToFindDBInCtx.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindDBInCtx))
+		return
+	}
+
+	var req CreateUserRequest
+	if err := c.BindJSON(&req); err != nil {
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidRequestFormat))
 		return
 	}
 
@@ -134,17 +134,17 @@ func UpdateHandler(c *gin.Context) {
 		return
 	}
 
-	var req UpdateUserRequest
-	if err := c.BindJSON(&req); err != nil {
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidRequestFormat))
-		return
-	}
-
 	db, ok := c.MustGet(common.DatabaseCtxKey).(*gendb.Queries)
 	if !ok {
 		log.Error(response.ErrFailedToFindDBInCtx.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindDBInCtx))
+		return
+	}
+
+	var req UpdateUserRequest
+	if err := c.BindJSON(&req); err != nil {
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidRequestFormat))
 		return
 	}
 

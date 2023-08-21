@@ -23,8 +23,8 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.AuthMiddleware(db), middleware.PermMiddleware(db))
 	g2.GET("/users", user.ListHandler)
 	g2.GET("/users/:id", user.GetHandler)
-	g2.POST("/roles", role.AddRoleToUserHandler)
-	g2.DELETE("/roles/:uid/:rid", role.RemoveRoleFromUserHander)
+	g2.POST("/roles", role.AddToUserHandler)
+	g2.DELETE("/roles/:uid/:rid", role.RemoveFromUserHander)
 	g2.PUT("/users", user.UpdateHandler)
 
 	return r

@@ -14,17 +14,10 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
-func AddRoleToUserHandler(c *gin.Context) {
+func AddToUserHandler(c *gin.Context) {
 	log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindLoggerInCtx))
-		return
-	}
-
-	roles := c.GetStringSlice(common.RolesCtxKey)
-	if !slices.Contains(roles, "admin") {
-		log.Error(response.ErrInsufficientPermission.Error())
-		c.JSON(http.StatusUnauthorized, response.WithError(response.ErrInsufficientPermission))
 		return
 	}
 
@@ -32,6 +25,13 @@ func AddRoleToUserHandler(c *gin.Context) {
 	if !ok {
 		log.Error(response.ErrFailedToFindDBInCtx.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindDBInCtx))
+		return
+	}
+
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") {
+		log.Error(response.ErrInsufficientPermission.Error())
+		c.JSON(http.StatusUnauthorized, response.WithError(response.ErrInsufficientPermission))
 		return
 	}
 
@@ -52,17 +52,10 @@ func AddRoleToUserHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response.WithData(row))
 }
 
-func RemoveRoleFromUserHander(c *gin.Context) {
+func RemoveFromUserHander(c *gin.Context) {
 	log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindLoggerInCtx))
-		return
-	}
-
-	roles := c.GetStringSlice(common.RolesCtxKey)
-	if !slices.Contains(roles, "admin") {
-		log.Error(response.ErrInsufficientPermission.Error())
-		c.JSON(http.StatusUnauthorized, response.WithError(response.ErrInsufficientPermission))
 		return
 	}
 
@@ -70,6 +63,13 @@ func RemoveRoleFromUserHander(c *gin.Context) {
 	if !ok {
 		log.Error(response.ErrFailedToFindDBInCtx.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindDBInCtx))
+		return
+	}
+
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") {
+		log.Error(response.ErrInsufficientPermission.Error())
+		c.JSON(http.StatusUnauthorized, response.WithError(response.ErrInsufficientPermission))
 		return
 	}
 
