@@ -13,18 +13,14 @@ import (
 
 func TestCreateRandomToken(t *testing.T) {
 	token, err := createRandomToken()
-	if err != nil {
-		require.NoError(t, err, "createRandomToken failed")
-	}
+	require.NoError(t, err, "createRandomToken failed")
 
 	require.Len(t, token, tokenLen*2, fmt.Sprintf("expected token size: %d, got: %d", tokenLen*2, len(token)))
 }
 
 func TestGetUserCredentialsWithUsername(t *testing.T) {
 	db, err := database.NewTestDb(context.Background())
-	if err != nil {
-		require.NoError(t, err, "failed to create test db")
-	}
+	require.NoError(t, err, "failed to create test db")
 
 	testCases := []struct {
 		Username    string
@@ -42,9 +38,8 @@ func TestGetUserCredentialsWithUsername(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(testCase.Password)); err != nil {
-					require.NoError(t, err)
-				}
+				err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(testCase.Password))
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -52,9 +47,7 @@ func TestGetUserCredentialsWithUsername(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	db, err := database.NewTestDb(context.Background())
-	if err != nil {
-		require.NoError(t, err, "failed to create test db")
-	}
+	require.NoError(t, err, "failed to create test db")
 
 	testCases := []struct {
 		Username    string
@@ -84,9 +77,7 @@ func TestLogin(t *testing.T) {
 
 func TestLogout(t *testing.T) {
 	db, err := database.NewTestDb(context.Background())
-	if err != nil {
-		require.NoError(t, err, "failed to create test db")
-	}
+	require.NoError(t, err, "failed to create test db")
 
 	testCases := []struct {
 		Username    string

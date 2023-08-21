@@ -14,9 +14,7 @@ import (
 
 func TestCreateUser(t *testing.T) {
 	db, err := database.NewTestDb(context.Background())
-	if err != nil {
-		require.NoError(t, err, "failed to create test db")
-	}
+	require.NoError(t, err, "failed to create test db")
 
 	testCases := []struct {
 		Username    string
