@@ -10,6 +10,11 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
+type Role struct {
+	ID   int64  `db:"id" json:"id"`
+	Role string `db:"role" json:"role"`
+}
+
 type User struct {
 	ID            types.UserID   `db:"id" json:"id"`
 	Username      string         `db:"username" json:"username"`

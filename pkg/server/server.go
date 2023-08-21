@@ -8,6 +8,7 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/auth"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/middleware"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/role"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/user"
 )
 
@@ -22,7 +23,9 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.AuthMiddleware(db))
 	g2.GET("/users", user.ListHandler)
 	g2.GET("/users/:id", user.GetHandler)
+	g2.POST("/roles", role.CreateRoleHandler)
 	g2.PUT("/users", user.UpdateHandler)
+	g2.DELETE("/roles/:role", role.DeleteRoleHandler)
 
 	return r
 }
