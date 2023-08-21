@@ -32,3 +32,14 @@ func (q *Queries) DeleteRole(ctx context.Context, role string) (int64, error) {
 	}
 	return result.RowsAffected()
 }
+
+const getRoleByName = `-- name: GetRoleByName :one
+SELECT id, role FROM roles WHERE role = ?
+`
+
+func (q *Queries) GetRoleByName(ctx context.Context, role string) (Role, error) {
+	row := q.db.QueryRowContext(ctx, getRoleByName, role)
+	var i Role
+	err := row.Scan(&i.ID, &i.Role)
+	return i, err
+}
