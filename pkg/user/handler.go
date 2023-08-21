@@ -70,6 +70,7 @@ func ListHandler(c *gin.Context) {
 	if err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(err))
+		return
 	}
 
 	c.JSON(http.StatusOK, response.WithData(rows))
@@ -102,6 +103,7 @@ func GetHandler(c *gin.Context) {
 		if err != nil {
 			log.Error(err.Error())
 			c.JSON(http.StatusInternalServerError, response.WithError(response.ErrContentNotFound))
+			return
 		}
 
 		c.JSON(http.StatusOK, response.WithData(self))
@@ -119,6 +121,7 @@ func GetHandler(c *gin.Context) {
 	if err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(err))
+		return
 	}
 
 	c.JSON(http.StatusOK, response.WithData(row))
