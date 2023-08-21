@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
@@ -16,12 +17,20 @@ func createUser(ctx context.Context, db *gendb.Queries, username, password strin
 		return gendb.CreateUserRow{}, fmt.Errorf("failed to generate hashed password: %w", err)
 	}
 
+	// TODO: add transaction for these two db operations
 	row, err := db.CreateUser(ctx, gendb.CreateUserParams{
 		Username: username,
 		Password: string(hashedPassword),
 	})
 	if err != nil {
 		return gendb.CreateUserRow{}, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	if _, err := db.AddRoleToUser(ctx, gendb.AddRoleToUserParams{
+		UserID: row.ID,
+		RoleID: common.DefaultRole,
+	}); err != nil {
+		return gendb.CreateUserRow{}, fmt.Errorf("failed to add role to user: %w", err)
 	}
 
 	return row, nil

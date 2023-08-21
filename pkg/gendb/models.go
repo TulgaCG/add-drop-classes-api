@@ -11,8 +11,8 @@ import (
 )
 
 type Role struct {
-	ID   int64  `db:"id" json:"id"`
-	Role string `db:"role" json:"role"`
+	ID   types.RoleID `db:"id" json:"id"`
+	Role string       `db:"role" json:"role"`
 }
 
 type User struct {
@@ -21,4 +21,10 @@ type User struct {
 	Password      string         `db:"password" json:"password"`
 	Token         sql.NullString `db:"token" json:"token"`
 	TokenExpireAt sql.NullTime   `db:"token_expire_at" json:"tokenExpireAt"`
+}
+
+type UserRole struct {
+	ID     int64        `db:"id" json:"id"`
+	UserID types.UserID `db:"user_id" json:"userId"`
+	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }
