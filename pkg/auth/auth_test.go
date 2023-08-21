@@ -32,7 +32,7 @@ func TestGetUserCredentialsWithUsername(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("testing getUserCredentialsWithUsername %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			user, err := getUserCredentialsWithUsername(context.Background(), db, testCase.Username)
 			if testCase.ExpectedErr {
 				require.Error(t, err)
@@ -60,7 +60,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("testing login %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			row, err := login(context.Background(), db, testCase.Username, testCase.Password)
 			if testCase.ExpectedErr {
 				require.Error(t, err)
@@ -90,7 +90,7 @@ func TestLogout(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("testing logout %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			row, _ := login(context.Background(), db, testCase.Username, testCase.Password)
 			err = logout(context.Background(), db, testCase.Username)
 			if testCase.ExpectedErr {

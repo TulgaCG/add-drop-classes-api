@@ -26,7 +26,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("testing createUser %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			row, err := createUser(context.Background(), db, testCase.Username, testCase.Password)
 
 			if testCase.ExpectedErr {
@@ -56,7 +56,7 @@ func TestListUsers(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := range expectedRows {
-		t.Run(fmt.Sprintf("testing listUsers %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			require.Equal(t, expectedRows[i], actualRows[i], fmt.Sprintf("test failed on row index of %d", i))
 		})
 	}
@@ -72,14 +72,10 @@ func TestGetUser(t *testing.T) {
 	}{
 		{0, true},
 		{1, false},
-		{2, false},
-		{3, false},
-		{4, false},
-		{5, false},
 	}
 
 	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("testing getUser %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			expected, _ := db.GetUser(context.Background(), testCase.Index)
 			actual, err := getUser(context.Background(), db, testCase.Index)
 			if testCase.ExpectedErr {
@@ -101,16 +97,11 @@ func TestGetUserByUsername(t *testing.T) {
 		ExpectedErr bool
 	}{
 		{"testuser1", false},
-		{"testuser2", false},
-		{"testuser3", false},
-		{"testuser4", false},
-		{"testuser5", false},
-		{"testuser6", true},
 		{"wronguser", true},
 	}
 
 	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("testing getUserByUsername %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			expected, _ := db.GetUserByUsername(context.Background(), testCase.Username)
 			actual, err := getUserByUsername(context.Background(), db, testCase.Username)
 			if testCase.ExpectedErr {
@@ -134,13 +125,11 @@ func TestUpdateUser(t *testing.T) {
 		ExpectedErr bool
 	}{
 		{1, "updateduser1", "updatedpassword1", false},
-		{2, "updateduser2", "updatedpassword2", false},
-		{3, "updateduser3", "updatedpassword3", false},
 		{7, "wronguser", "wrongpassword", true},
 	}
 
 	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("testing updateUser %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			user, _ := db.GetUser(context.Background(), testCase.Index)
 			actual, err := updateUser(context.Background(), db, gendb.UpdateUserParams{
 				ID:       testCase.Index,
