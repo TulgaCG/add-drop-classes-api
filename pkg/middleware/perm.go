@@ -11,7 +11,7 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/server/response"
 )
 
-func PermMiddleWare(db *gendb.Queries) gin.HandlerFunc {
+func PermMiddleware(db *gendb.Queries) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
 		if !ok {
