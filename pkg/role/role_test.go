@@ -20,8 +20,8 @@ func TestAddRoleToUser(t *testing.T) {
 		RoleID      types.RoleID
 		ExpectedErr bool
 	}{
-		{1, 3, false},
-		{1, 1, true},
+		{1, 3, true},
+		{1, 2, false},
 		{2, 4, false},
 	}
 
@@ -48,8 +48,8 @@ func TestRemoveRoleFromUser(t *testing.T) {
 		RoleID      types.RoleID
 		ExpectedErr bool
 	}{
-		{1, 2, false},
-		{1, 3, true},
+		{1, 2, true},
+		{1, 3, false},
 	}
 
 	for i, testCase := range testCases {

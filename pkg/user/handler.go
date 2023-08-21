@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slices"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
@@ -58,6 +59,13 @@ func ListHandler(c *gin.Context) {
 		return
 	}
 
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+		log.Error(response.ErrInsufficientPermission.Error())
+		c.JSON(http.StatusUnauthorized, response.WithError(response.ErrInsufficientPermission))
+		return
+	}
+
 	rows, err := listUsers(c, db)
 	if err != nil {
 		log.Error(err.Error())
@@ -78,6 +86,25 @@ func GetHandler(c *gin.Context) {
 	if !ok {
 		log.Error(response.ErrFailedToFindDBInCtx.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindDBInCtx))
+		return
+	}
+
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+		username := c.Request.Header.Get(common.UsernameHeaderKey)
+		if username == "" {
+			log.Error("no username header")
+			c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+			return
+		}
+
+		self, err := getUserByUsername(c, db, username)
+		if err != nil {
+			log.Error(err.Error())
+			c.JSON(http.StatusInternalServerError, response.WithError(response.ErrContentNotFound))
+		}
+
+		c.JSON(http.StatusOK, response.WithData(self))
 		return
 	}
 
@@ -115,6 +142,26 @@ func UpdateHandler(c *gin.Context) {
 	if !ok {
 		log.Error(response.ErrFailedToFindDBInCtx.Error())
 		c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindDBInCtx))
+		return
+	}
+
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+		username := c.Request.Header.Get(common.UsernameHeaderKey)
+		if username == "" {
+			log.Error("no username header")
+			c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+			return
+		}
+
+		self, err := updateUser(c, db, gendb.UpdateUserParams{Username: req.NewUsername, Password: req.NewPassword})
+		if err != nil {
+			log.Error(err.Error())
+			c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidRequestFormat))
+			return
+		}
+
+		c.JSON(http.StatusOK, response.WithData(self))
 		return
 	}
 
