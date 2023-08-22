@@ -7,7 +7,9 @@ var (
 	ErrFailedToFindDBInCtx     = errors.New("failed to find database in the context")
 	ErrFailedToFindLoggerInCtx = errors.New("failed to find logger in the context")
 	ErrInvalidParamIDFormat    = errors.New("invalid id format, id must be integer")
+	ErrInsufficientPermission  = errors.New("user dont have permission")
 	ErrInvalidRequestFormat    = errors.New("invalid request format")
+	ErrContentNotFound         = errors.New("failed to find content in db")
 )
 
 type Response struct {
