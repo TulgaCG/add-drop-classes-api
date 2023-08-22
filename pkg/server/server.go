@@ -21,15 +21,15 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	g1.POST("/login", auth.LoginHandler)
 	g1.POST("/users", user.CreateHandler)
 
-	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.AuthMiddleware(db))
-	g2.GET("/users", user.ListHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, true))
-	g2.GET("/users/:id", user.GetHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
-	g2.GET("/lectures/:id", lecture.GetFromUserHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
-	g2.POST("/roles", role.AddToUserHandler, middleware.PermMiddleware(db, []string{"admin"}, true))
-	g2.POST("/lectures", lecture.AddToUserHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
-	g2.DELETE("/lectures/:uid/:lid", lecture.RemoveFromUserHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
-	g2.DELETE("/roles/:uid/:rid", role.RemoveFromUserHandler, middleware.PermMiddleware(db, []string{"admin"}, true))
-	g2.PUT("/users", user.UpdateHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
+	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.Authentication(db))
+	g2.GET("/users", user.ListHandler, middleware.Authorization(db, "admin", "teacher"))
+	g2.GET("/users/:id", user.GetHandler, middleware.HandlerAuthorization(db))
+	g2.GET("/lectures/:id", lecture.GetFromUserHandler, middleware.HandlerAuthorization(db))
+	g2.POST("/roles", role.AddToUserHandler, middleware.Authorization(db, "admin"))
+	g2.POST("/lectures", lecture.AddToUserHandler, middleware.HandlerAuthorization(db))
+	g2.DELETE("/lectures/:uid/:lid", lecture.RemoveFromUserHandler, middleware.HandlerAuthorization(db))
+	g2.DELETE("/roles/:uid/:rid", role.RemoveFromUserHandler, middleware.Authorization(db, "admin"))
+	g2.PUT("/users", user.UpdateHandler, middleware.HandlerAuthorization(db))
 
 	return r
 }
