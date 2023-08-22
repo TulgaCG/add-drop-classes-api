@@ -21,15 +21,15 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	g1.POST("/login", auth.LoginHandler)
 	g1.POST("/users", user.CreateHandler)
 
-	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.AuthMiddleware(db), middleware.PermMiddleware(db))
-	g2.GET("/users", user.ListHandler)
-	g2.GET("/users/:id", user.GetHandler)
-	g2.GET("/lectures/:id", lecture.GetFromUserHandler)
-	g2.POST("/roles", role.AddToUserHandler)
-	g2.POST("/lectures", lecture.AddToUserHandler)
-	g2.DELETE("/lectures/:uid/:lid", lecture.RemoveFromUserHandler)
-	g2.DELETE("/roles/:uid/:rid", role.RemoveFromUserHandler)
-	g2.PUT("/users", user.UpdateHandler)
+	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.AuthMiddleware(db))
+	g2.GET("/users", user.ListHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, true))
+	g2.GET("/users/:id", user.GetHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
+	g2.GET("/lectures/:id", lecture.GetFromUserHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
+	g2.POST("/roles", role.AddToUserHandler, middleware.PermMiddleware(db, []string{"admin"}, true))
+	g2.POST("/lectures", lecture.AddToUserHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
+	g2.DELETE("/lectures/:uid/:lid", lecture.RemoveFromUserHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
+	g2.DELETE("/roles/:uid/:rid", role.RemoveFromUserHandler, middleware.PermMiddleware(db, []string{"admin"}, true))
+	g2.PUT("/users", user.UpdateHandler, middleware.PermMiddleware(db, []string{"admin", "teacher"}, false))
 
 	return r
 }
