@@ -44,6 +44,10 @@ func NewTestDb(ctx context.Context) (*gendb.Queries, error) {
 		return nil, err
 	}
 
+	if _, err := d.ExecContext(ctx, database.Lectures); err != nil {
+		return nil, err
+	}
+
 	db := gendb.New(d)
 
 	for i := 1; i <= 5; i++ {
@@ -58,6 +62,13 @@ func NewTestDb(ctx context.Context) (*gendb.Queries, error) {
 
 		if _, err := db.AddRoleToUser(ctx, gendb.AddRoleToUserParams{UserID: types.UserID(i), RoleID: common.DefaultRole}); err != nil {
 			return nil, err
+		}
+
+		//nolint:gomnd
+		if i < 4 {
+			if _, err := db.AddLectureToUser(ctx, gendb.AddLectureToUserParams{UserID: types.UserID(i), LectureID: types.LectureID(i)}); err != nil {
+				return nil, err
+			}
 		}
 
 		if _, err := db.CreateUser(ctx, gendb.CreateUserParams{

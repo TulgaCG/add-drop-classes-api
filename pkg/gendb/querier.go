@@ -11,16 +11,23 @@ import (
 )
 
 type Querier interface {
+	AddLectureToUser(ctx context.Context, arg AddLectureToUserParams) (AddLectureToUserRow, error)
 	AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (AddRoleToUserRow, error)
+	CreateLecture(ctx context.Context, arg CreateLectureParams) (Lecture, error)
 	CreateRole(ctx context.Context, role string) (Role, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteRole(ctx context.Context, role string) (int64, error)
+	GetLecture(ctx context.Context, id types.LectureID) (Lecture, error)
+	GetLectureByCode(ctx context.Context, code string) (Lecture, error)
 	GetRoleByName(ctx context.Context, role string) (Role, error)
 	GetUser(ctx context.Context, id types.UserID) (GetUserRow, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserCredentialsWithUsername(ctx context.Context, username string) (User, error)
+	GetUserLectures(ctx context.Context, id types.UserID) ([]GetUserLecturesRow, error)
 	GetUserRoles(ctx context.Context, id types.UserID) ([]string, error)
+	ListLectures(ctx context.Context) ([]Lecture, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
+	RemoveLectureFromUser(ctx context.Context, arg RemoveLectureFromUserParams) (int64, error)
 	RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) (int64, error)
 	UpdateToken(ctx context.Context, arg UpdateTokenParams) (UpdateTokenRow, error)
 	UpdateTokenExpirationDate(ctx context.Context, arg UpdateTokenExpirationDateParams) error

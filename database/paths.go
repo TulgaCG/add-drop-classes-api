@@ -7,3 +7,6 @@ var Schema string
 
 //go:embed roles.sql
 var Roles string
+
+//go:embed lectures.sql
+var Lectures string

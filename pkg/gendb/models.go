@@ -10,6 +10,14 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
+type Lecture struct {
+	ID     types.LectureID `db:"id" json:"id"`
+	Name   string          `db:"name" json:"name"`
+	Code   string          `db:"code" json:"code"`
+	Credit int64           `db:"credit" json:"credit"`
+	Type   sql.NullInt64   `db:"type" json:"type"`
+}
+
 type Role struct {
 	ID   types.RoleID `db:"id" json:"id"`
 	Role string       `db:"role" json:"role"`
@@ -21,6 +29,12 @@ type User struct {
 	Password      string         `db:"password" json:"password"`
 	Token         sql.NullString `db:"token" json:"token"`
 	TokenExpireAt sql.NullTime   `db:"token_expire_at" json:"tokenExpireAt"`
+}
+
+type UserLecture struct {
+	ID        int64           `db:"id" json:"id"`
+	UserID    types.UserID    `db:"user_id" json:"userId"`
+	LectureID types.LectureID `db:"lecture_id" json:"lectureId"`
 }
 
 type UserRole struct {
