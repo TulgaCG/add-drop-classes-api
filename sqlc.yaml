@@ -28,3 +28,6 @@ sql:
 
           - column: "*.role_id"
             go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.RoleID
+
+          - column: "roles.role"
+            go_type: github.com/TulgaCG/add-drop-classes-api/pkg/types.Role

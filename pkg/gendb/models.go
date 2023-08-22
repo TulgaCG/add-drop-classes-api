@@ -20,7 +20,7 @@ type Lecture struct {
 
 type Role struct {
 	ID   types.RoleID `db:"id" json:"id"`
-	Role string       `db:"role" json:"role"`
+	Role types.Role   `db:"role" json:"role"`
 }
 
 type User struct {

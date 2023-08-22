@@ -10,6 +10,7 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/lecture"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/middleware"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/role"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/user"
 )
 
@@ -28,11 +29,11 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	g2.DELETE("/lectures/:uid/:lid", lecture.RemoveFromUserHandler)
 	g2.PUT("/users", user.UpdateHandler)
 
-	g3 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, "admin"))
+	g3 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin))
 	g3.DELETE("/roles/:uid/:rid", role.RemoveFromUserHandler)
 	g3.POST("/roles", role.AddToUserHandler)
 
-	r.GET("/users", user.ListHandler, middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, "admin", "teacher"))
+	r.GET("/users", user.ListHandler, middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin, types.RoleTeacher))
 
 	return r
 }

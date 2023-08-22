@@ -42,15 +42,15 @@ JOIN roles r ON ur.role_id = r.id
 WHERE u.id = ?
 `
 
-func (q *Queries) GetUserRoles(ctx context.Context, id types.UserID) ([]string, error) {
+func (q *Queries) GetUserRoles(ctx context.Context, id types.UserID) ([]types.Role, error) {
 	rows, err := q.db.QueryContext(ctx, getUserRoles, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []types.Role
 	for rows.Next() {
-		var role string
+		var role types.Role
 		if err := rows.Scan(&role); err != nil {
 			return nil, err
 		}

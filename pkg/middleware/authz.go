@@ -10,9 +10,10 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/server/response"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
-func Authorization(db *gendb.Queries, allowedRoles ...string) gin.HandlerFunc {
+func Authorization(db *gendb.Queries, allowedRoles ...types.Role) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
 		if !ok {

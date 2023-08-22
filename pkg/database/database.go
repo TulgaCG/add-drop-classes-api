@@ -56,7 +56,7 @@ func NewTestDb(ctx context.Context) (*gendb.Queries, error) {
 			return nil, fmt.Errorf("failed to generate hashed password: %w", err)
 		}
 
-		if _, err := db.CreateRole(ctx, fmt.Sprintf("testrole%d", i)); err != nil {
+		if _, err := db.CreateRole(ctx, types.Role(fmt.Sprintf("testrole%d", i))); err != nil {
 			return nil, err
 		}
 
