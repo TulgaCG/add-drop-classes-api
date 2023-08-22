@@ -157,15 +157,7 @@ func UpdateHandler(c *gin.Context) {
 			return
 		}
 
-		self, err := updateUser(c, db, gendb.UpdateUserParams{Username: req.NewUsername, Password: req.NewPassword})
-		if err != nil {
-			log.Error(err.Error())
-			c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidRequestFormat))
-			return
-		}
-
-		c.JSON(http.StatusOK, response.WithData(self))
-		return
+		req.Username = username
 	}
 
 	u, err := getUserByUsername(c, db, req.Username)

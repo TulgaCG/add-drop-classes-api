@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slices"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
@@ -33,6 +34,25 @@ func GetFromUserHandler(c *gin.Context) {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidParamIDFormat))
 		return
+	}
+
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+		username := c.Request.Header.Get(common.UsernameHeaderKey)
+		if username == "" {
+			log.Error("no username header")
+			c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+			return
+		}
+
+		self, err := db.GetUserByUsername(c, username)
+		if err != nil {
+			log.Error(err.Error())
+			c.JSON(http.StatusInternalServerError, response.WithError(response.ErrContentNotFound))
+			return
+		}
+
+		id = int(self.ID)
 	}
 
 	lectures, err := getLecturesFromUser(c, db, types.UserID(id))
@@ -66,6 +86,18 @@ func AddToUserHandler(c *gin.Context) {
 		return
 	}
 
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+		username := c.Request.Header.Get(common.UsernameHeaderKey)
+		if username == "" {
+			log.Error("no username header")
+			c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+			return
+		}
+
+		req.Username = username
+	}
+
 	row, err := addLectureToUser(c, db, req.Username, req.LectureCode)
 	if err != nil {
 		log.Error(err.Error())
@@ -95,6 +127,25 @@ func RemoveFromUserHandler(c *gin.Context) {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidParamIDFormat))
 		return
+	}
+
+	roles := c.GetStringSlice(common.RolesCtxKey)
+	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+		username := c.Request.Header.Get(common.UsernameHeaderKey)
+		if username == "" {
+			log.Error("no username header")
+			c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+			return
+		}
+
+		self, err := db.GetUserByUsername(c, username)
+		if err != nil {
+			log.Error(err.Error())
+			c.JSON(http.StatusInternalServerError, response.WithError(response.ErrContentNotFound))
+			return
+		}
+
+		uid = int(self.ID)
 	}
 
 	lid, err := strconv.Atoi(c.Param("lid"))
