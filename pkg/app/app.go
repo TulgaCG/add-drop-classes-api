@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/go-playground/validator/v10"
-
 	"github.com/TulgaCG/add-drop-classes-api/pkg/database"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/server"
 )
@@ -22,9 +20,7 @@ func Run(conf *Conf) error {
 		return fmt.Errorf("failed to create db connection: %w", err)
 	}
 
-	v := validator.New()
-
-	s := server.New(db, conf.Log, v)
+	s := server.New(db, conf.Log)
 	if err = s.Run(); err != nil {
 		return fmt.Errorf("failed to run server instance: %w", err)
 	}
