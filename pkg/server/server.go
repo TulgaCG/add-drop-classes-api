@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/flosch/pongo2/v6"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/go-box/pongo2gin/v6"
 
@@ -22,7 +23,10 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	r.HTMLRender = pongo2gin.Default()
 
 	r.GET("/", func(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
+		names := []string{"test", "name", "pongo"}
+		c.HTML(http.StatusOK, "index.html", pongo2.Context{
+			"names": names,
+		})
 	})
 
 	g1 := r.Group("/api", middleware.Log(log), middleware.Database(db))
@@ -43,6 +47,7 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 
 	g4 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin, types.RoleTeacher))
 	g4.GET("/users", user.ListHandler)
+
 
 	return r
 }
