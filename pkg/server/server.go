@@ -33,7 +33,8 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	g3.DELETE("/roles/:uid/:rid", role.RemoveFromUserHandler)
 	g3.POST("/roles", role.AddToUserHandler)
 
-	r.GET("/users", user.ListHandler, middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin, types.RoleTeacher))
+	g4 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin, types.RoleTeacher))
+	g4.GET("/users", user.ListHandler)
 
 	return r
 }

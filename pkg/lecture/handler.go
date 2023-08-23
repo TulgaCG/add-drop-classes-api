@@ -36,8 +36,17 @@ func GetFromUserHandler(c *gin.Context) {
 		return
 	}
 
-	roles := c.GetStringSlice(common.RolesCtxKey)
-	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+	r, exists := c.Get(common.RolesCtxKey)
+	if !exists {
+		log.Error("failed to get roles from gin context")
+	}
+
+	roles, ok := r.([]types.Role)
+	if !ok {
+		log.Error("failed type assertion roles")
+	}
+	
+	if !slices.Contains(roles, types.RoleAdmin) && !slices.Contains(roles, types.RoleTeacher) {
 		username := c.Request.Header.Get(common.UsernameHeaderKey)
 		if username == "" {
 			log.Error("no username header")
@@ -86,8 +95,17 @@ func AddToUserHandler(c *gin.Context) {
 		return
 	}
 
-	roles := c.GetStringSlice(common.RolesCtxKey)
-	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+	r, exists := c.Get(common.RolesCtxKey)
+	if !exists {
+		log.Error("failed to get roles from gin context")
+	}
+
+	roles, ok := r.([]types.Role)
+	if !ok {
+		log.Error("failed type assertion roles")
+	}
+
+	if !slices.Contains(roles, types.RoleAdmin) && !slices.Contains(roles, types.RoleTeacher) {
 		username := c.Request.Header.Get(common.UsernameHeaderKey)
 		if username == "" {
 			log.Error("no username header")
@@ -129,8 +147,17 @@ func RemoveFromUserHandler(c *gin.Context) {
 		return
 	}
 
-	roles := c.GetStringSlice(common.RolesCtxKey)
-	if !slices.Contains(roles, "admin") && !slices.Contains(roles, "teacher") {
+	r, exists := c.Get(common.RolesCtxKey)
+	if !exists {
+		log.Error("failed to get roles from gin context")
+	}
+
+	roles, ok := r.([]types.Role)
+	if !ok {
+		log.Error("failed type assertion roles")
+	}
+
+	if !slices.Contains(roles, types.RoleAdmin) && !slices.Contains(roles, types.RoleTeacher) {
 		username := c.Request.Header.Get(common.UsernameHeaderKey)
 		if username == "" {
 			log.Error("no username header")
