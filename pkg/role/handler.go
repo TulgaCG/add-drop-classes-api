@@ -1,11 +1,13 @@
 package role
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/common"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
@@ -27,10 +29,23 @@ func AddToUserHandler(c *gin.Context) {
 		return
 	}
 
+	v, ok := c.MustGet(common.ValidatorCtxKey).(*validator.Validate)
+	if !ok {
+		log.Error(response.ErrFailedToFindValidatorInCtx.Error())
+		c.JSON(http.StatusBadRequest, response.WithError(response.ErrFailedToFindValidatorInCtx))
+		return
+	}
+
 	var req AddRoleRequest
 	if err := c.BindJSON(&req); err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, response.WithError(response.ErrInvalidRequestFormat))
+		return
+	}
+
+	if err := v.Struct(req); err != nil {
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, response.WithError(fmt.Errorf("failed validation")))
 		return
 	}
 
