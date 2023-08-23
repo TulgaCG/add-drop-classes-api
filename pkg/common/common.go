@@ -8,6 +8,7 @@ const (
 	DatabaseCtxKey    = "db"
 	LogCtxKey         = "log"
 	RolesCtxKey       = "roles"
+	ValidatorCtxKey   = "validator"
 	UsernameHeaderKey = "Username"
 	DefaultRole       = types.RoleID(3)
 )

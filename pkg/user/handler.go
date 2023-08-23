@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -85,12 +86,16 @@ func GetHandler(c *gin.Context) {
 
 	r, exists := c.Get(common.RolesCtxKey)
 	if !exists {
-		log.Error("failed to get roles from gin context")
+		log.Error(response.ErrFailedToFindRolesInCtx.Error())
+		c.JSON(http.StatusInternalServerError, response.WithError(fmt.Errorf("failed to get roles from context")))
+		return
 	}
 
 	roles, ok := r.([]types.Role)
 	if !ok {
 		log.Error("failed type assertion roles")
+		c.JSON(http.StatusInternalServerError, response.WithError(fmt.Errorf("failed to get roles")))
+		return
 	}
 
 	if !slices.Contains(roles, types.RoleAdmin) && !slices.Contains(roles, types.RoleTeacher) {
@@ -152,12 +157,16 @@ func UpdateHandler(c *gin.Context) {
 
 	r, exists := c.Get(common.RolesCtxKey)
 	if !exists {
-		log.Error("failed to get roles from gin context")
+		log.Error(response.ErrFailedToFindRolesInCtx.Error())
+		c.JSON(http.StatusInternalServerError, response.WithError(fmt.Errorf("failed to get roles from context")))
+		return
 	}
 
 	roles, ok := r.([]types.Role)
 	if !ok {
 		log.Error("failed type assertion roles")
+		c.JSON(http.StatusInternalServerError, response.WithError(fmt.Errorf("failed to get roles")))
+		return
 	}
 
 	if !slices.Contains(roles, types.RoleAdmin) && !slices.Contains(roles, types.RoleTeacher) {
