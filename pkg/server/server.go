@@ -7,25 +7,34 @@ import (
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/auth"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/lecture"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/middleware"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/role"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/user"
 )
 
 func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	r := gin.Default()
 
-	g1 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db))
+	g1 := r.Group("/api", middleware.Log(log), middleware.Database(db))
 	g1.GET("/logout", auth.LogoutHandler)
 	g1.POST("/login", auth.LoginHandler)
 	g1.POST("/users", user.CreateHandler)
 
-	g2 := r.Group("/api", middleware.LogMiddleware(log), middleware.DBMiddleware(db), middleware.AuthMiddleware(db), middleware.PermMiddleware(db))
-	g2.GET("/users", user.ListHandler)
+	g2 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.HandlerAuthorization(db))
 	g2.GET("/users/:id", user.GetHandler)
-	g2.POST("/roles", role.AddToUserHandler)
-	g2.DELETE("/roles/:uid/:rid", role.RemoveFromUserHander)
+	g2.GET("/lectures/:id", lecture.GetFromUserHandler)
+	g2.POST("/lectures", lecture.AddToUserHandler)
+	g2.DELETE("/lectures/:uid/:lid", lecture.RemoveFromUserHandler)
 	g2.PUT("/users", user.UpdateHandler)
+
+	g3 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin))
+	g3.DELETE("/roles/:uid/:rid", role.RemoveFromUserHandler)
+	g3.POST("/roles", role.AddToUserHandler)
+
+	g4 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin, types.RoleTeacher))
+	g4.GET("/users", user.ListHandler)
 
 	return r
 }

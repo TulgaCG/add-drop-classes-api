@@ -15,7 +15,7 @@ import (
 
 const tokenHeaderKey = "Token"
 
-func AuthMiddleware(db *gendb.Queries) gin.HandlerFunc {
+func Authentication(db *gendb.Queries) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
 		if !ok {
