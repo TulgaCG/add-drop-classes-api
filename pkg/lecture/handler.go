@@ -45,7 +45,7 @@ func GetFromUserHandler(c *gin.Context) {
 	if !ok {
 		log.Error("failed type assertion roles")
 	}
-	
+
 	if !slices.Contains(roles, types.RoleAdmin) && !slices.Contains(roles, types.RoleTeacher) {
 		username := c.Request.Header.Get(common.UsernameHeaderKey)
 		if username == "" {
