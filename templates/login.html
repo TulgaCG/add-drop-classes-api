@@ -1,0 +1,47 @@
+{% extends "base/layout.html" %}
+
+{% block head %}
+<script>
+    async function fetchJSON(url, method, data) {
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    "username": localStorage.getItem("username"),
+                    "token": localStorage.getItem("token")
+                },
+                body: JSON.stringify(data),
+            });
+
+            return await response.json();
+        } catch (error) {
+            // error olunca browser'ın konsolunda göreceksin
+            console.error("Error:", error);
+        }
+    }
+
+    $(document).ready(function () {
+        $("#btnLogin").click(async function () {
+            let loginResponse = await fetchJSON(
+                "/api/login",
+                "POST",
+                {
+                    "username": $("#usr").val(),
+                    "password": $("#psw").val() });
+            localStorage.setItem("username", loginResponse.data.username)
+            localStorage.setItem("token", loginResponse.data.token.String)
+            window.location.href = "/lectures";
+        });
+    });
+</script>
+{% endblock %}
+
+{% block body %}
+    <h1>Add/Drop classes</h1>
+    <b>Username: </b><input type="text" id="usr">
+    <br>
+    <b>Password: </b><input type="text" id="psw">
+    <br>
+    <button id="btnLogin">Login</button>
+{% endblock %}

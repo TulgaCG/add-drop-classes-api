@@ -26,7 +26,16 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 		c.HTML(http.StatusOK, "index.html", pongo2.Context{})
 	})
 
-	r.GET("/lecture", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), func(c *gin.Context) {
+	r.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", pongo2.Context{})
+	})
+
+	r.GET("/lectures", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), func(c *gin.Context) {
+
+		username, _ := c.Cookie("username")
+		user, _ := db.GetUserCredentialsWithUsername(c, username)
+
+		userLectures, _ := db.GetUserLectures(c, user.ID)
 
 		lectures, err := db.ListLectures(c)
 		if err != nil {
@@ -35,8 +44,13 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 
 		c.HTML(http.StatusOK, "lecture.html", pongo2.Context{
 			"lectures":  lectures,
-			"lectureExist": func () {
-				
+			"lectureExist": func (lec string) bool {
+				for _, lecture := range userLectures {
+					if lecture.Code == lec {
+						return true
+					}
+				}
+				return false
 			},
 		})
 	})
