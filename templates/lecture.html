@@ -30,7 +30,9 @@
                     "POST",
                     {
                         "username": $("#usr").val(),
-                        "password": $("#psw").val() });
+                        "password": $("#psw").val()
+                    });
+
                 localStorage.setItem("username", loginResponse.data.username)
                 localStorage.setItem("token", loginResponse.data.token.String)
             });
@@ -40,11 +42,20 @@
 
 <body>
 
-    <b>Username: </b><input type="text" id="usr">
-    <br>
-    <b>Password: </b><input type="text" id="psw">
-    <br>
-    <button id="btnLogin">Login</button>
+    <div style="width: 100%;">
+        {% if userExist %}
+            {% for lecture in lectures %}
+            <div id={{ lecture.ID }} class="lecture">
+                <h3>Lecture {{ lecture.ID }}:</h3>
+                <b>Code: {{ lecture.Code }}</b><br>
+                <b>Name: {{ lecture.Name }}</b><br>
+                <button id="btnLec{{lecture.ID}}">Take lecture</button><br>
+            </div>
+            {% endfor %}
+        {% endif %}
+        <br><br><br>
+        <button id="getLectures">List lectures</buton>
+    </div>
 
 </body>
 

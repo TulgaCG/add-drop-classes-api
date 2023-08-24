@@ -15,7 +15,12 @@ type Conf struct {
 }
 
 func Run(conf *Conf) error {
-	db, err := database.New(context.Background(), conf.DbPath)
+	// db, err := database.New(context.Background(), conf.DbPath)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to create db connection: %w", err)
+	// }
+
+	db, err := database.NewTestDb(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to create db connection: %w", err)
 	}

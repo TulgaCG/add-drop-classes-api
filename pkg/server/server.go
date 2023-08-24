@@ -23,9 +23,18 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 	r.HTMLRender = pongo2gin.Default()
 
 	r.GET("/", func(c *gin.Context) {
-		names := []string{"test", "name", "pongo"}
-		c.HTML(http.StatusOK, "index.html", pongo2.Context{
-			"names": names,
+		c.HTML(http.StatusOK, "index.html", pongo2.Context{})
+	})
+
+	r.GET("/lecture", func(c *gin.Context) {
+		lectures, err := db.ListLectures(c)
+		if err != nil {
+			c.Status(401)
+		}
+
+		c.HTML(http.StatusOK, "lecture.html", pongo2.Context{
+			"lectures": lectures,
+			"userExist": true,
 		})
 	})
 
@@ -47,7 +56,6 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 
 	g4 := r.Group("/api", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), middleware.Authorization(db, types.RoleAdmin, types.RoleTeacher))
 	g4.GET("/users", user.ListHandler)
-
 
 	return r
 }
