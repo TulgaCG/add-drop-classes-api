@@ -26,15 +26,18 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 		c.HTML(http.StatusOK, "index.html", pongo2.Context{})
 	})
 
-	r.GET("/lecture", func(c *gin.Context) {
+	r.GET("/lecture", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), func(c *gin.Context) {
+
 		lectures, err := db.ListLectures(c)
 		if err != nil {
-			c.Status(401)
+			c.Status(http.StatusInternalServerError)
 		}
 
 		c.HTML(http.StatusOK, "lecture.html", pongo2.Context{
-			"lectures": lectures,
-			"userExist": true,
+			"lectures":  lectures,
+			"lectureExist": func () {
+				
+			},
 		})
 	})
 

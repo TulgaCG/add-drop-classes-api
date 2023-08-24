@@ -11,6 +11,10 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/server/response"
 )
 
+const (
+	cookieLifeTime = 7200
+)
+
 func LoginHandler(c *gin.Context) {
 	log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
 	if !ok {
@@ -39,6 +43,9 @@ func LoginHandler(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
 		return
 	}
+
+	c.SetCookie("username", row.Username, cookieLifeTime, "/", "127.0.0.1", false, true)
+	c.SetCookie("token", row.Token.String, cookieLifeTime, "/", "127.0.0.1", false, true)
 
 	c.JSON(http.StatusOK, response.WithData(row))
 }

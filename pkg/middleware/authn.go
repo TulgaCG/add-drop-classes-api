@@ -17,6 +17,7 @@ const tokenHeaderKey = "Token"
 
 func Authentication(db *gendb.Queries) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var err error
 		log, ok := c.MustGet(common.LogCtxKey).(*slog.Logger)
 		if !ok {
 			c.JSON(http.StatusInternalServerError, response.WithError(response.ErrFailedToFindLoggerInCtx))
@@ -24,22 +25,27 @@ func Authentication(db *gendb.Queries) gin.HandlerFunc {
 		}
 
 		username := c.Request.Header.Get(common.UsernameHeaderKey)
-		if username == "" {
-			log.Error("no username header")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
-			return
-		}
-
 		token := c.Request.Header.Get(tokenHeaderKey)
-		if token == "" {
-			log.Error("no token header")
-			c.JSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
-			return
+
+		if username == "" {
+			username, err = c.Cookie("username")
+			if err != nil {
+				log.Error("no username found")
+				c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+				return
+			}
+
+			token, err = c.Cookie("token")
+			if err != nil {
+				log.Error("no username found")
+				c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
+				return
+			}
 		}
 
 		u, err := db.GetUserCredentialsWithUsername(c, username)
 		if err != nil {
-			log.Error("no database in gin context")
+			log.Error(fmt.Sprintf("no database in gin context %s", username))
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.WithError(response.ErrFailedToAuthenticate))
 			return
 		}
