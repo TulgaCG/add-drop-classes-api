@@ -30,7 +30,7 @@ func New(db *gendb.Queries, log *slog.Logger) *gin.Engine {
 		c.HTML(http.StatusOK, "login.html", pongo2.Context{})
 	})
 
-	r.GET("/lectures", middleware.Log(log), middleware.Database(db), middleware.Authentication(db), func(c *gin.Context) {
+	r.GET("/lectures", middleware.Log(log), middleware.Database(db), middleware.AuthenticationUI(db), func(c *gin.Context) {
 
 		username, _ := c.Cookie("username")
 		user, _ := db.GetUserCredentialsWithUsername(c, username)
