@@ -7,16 +7,16 @@ package gendb
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username, password
 ) VALUES (
-    ?, ?
+    $1, $2
 )
 RETURNING id, username
 `
@@ -32,7 +32,7 @@ type CreateUserRow struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Password)
+	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Password)
 	var i CreateUserRow
 	err := row.Scan(&i.ID, &i.Username)
 	return i, err
@@ -40,7 +40,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 
 const getUser = `-- name: GetUser :one
 SELECT id, username FROM users
-WHERE id = ? LIMIT 1
+WHERE id = $1 LIMIT 1
 `
 
 type GetUserRow struct {
@@ -49,7 +49,7 @@ type GetUserRow struct {
 }
 
 func (q *Queries) GetUser(ctx context.Context, id types.UserID) (GetUserRow, error) {
-	row := q.db.QueryRowContext(ctx, getUser, id)
+	row := q.db.QueryRow(ctx, getUser, id)
 	var i GetUserRow
 	err := row.Scan(&i.ID, &i.Username)
 	return i, err
@@ -57,7 +57,7 @@ func (q *Queries) GetUser(ctx context.Context, id types.UserID) (GetUserRow, err
 
 const getUserByUsername = `-- name: GetUserByUsername :one
 SELECT id, username FROM users
-WHERE username = ? LIMIT 1
+WHERE username = $1 LIMIT 1
 `
 
 type GetUserByUsernameRow struct {
@@ -66,7 +66,7 @@ type GetUserByUsernameRow struct {
 }
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i GetUserByUsernameRow
 	err := row.Scan(&i.ID, &i.Username)
 	return i, err
@@ -74,11 +74,11 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 
 const getUserCredentialsWithUsername = `-- name: GetUserCredentialsWithUsername :one
 SELECT id, username, password, token, token_expire_at FROM users
-WHERE username = ? LIMIT 1
+WHERE username = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserCredentialsWithUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserCredentialsWithUsername, username)
+	row := q.db.QueryRow(ctx, getUserCredentialsWithUsername, username)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -101,7 +101,7 @@ type ListUsersRow struct {
 }
 
 func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, listUsers)
+	rows, err := q.db.Query(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -114,36 +114,43 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
 }
 
+const testDeleteUser = `-- name: TestDeleteUser :exec
+DELETE FROM users
+WHERE username = $1
+`
+
+func (q *Queries) TestDeleteUser(ctx context.Context, username string) error {
+	_, err := q.db.Exec(ctx, testDeleteUser, username)
+	return err
+}
+
 const updateToken = `-- name: UpdateToken :one
 UPDATE users
-set token = ?,
-    token_expire_at = ?
-WHERE id = ?
+set token = $1,
+    token_expire_at = $2
+WHERE id = $3
 RETURNING username, token
 `
 
 type UpdateTokenParams struct {
-	Token         sql.NullString `db:"token" json:"token"`
-	TokenExpireAt sql.NullTime   `db:"token_expire_at" json:"tokenExpireAt"`
-	ID            types.UserID   `db:"id" json:"id"`
+	Token         pgtype.Text      `db:"token" json:"token"`
+	TokenExpireAt pgtype.Timestamp `db:"token_expire_at" json:"tokenExpireAt"`
+	ID            types.UserID     `db:"id" json:"id"`
 }
 
 type UpdateTokenRow struct {
-	Username string         `db:"username" json:"username"`
-	Token    sql.NullString `db:"token" json:"token"`
+	Username string      `db:"username" json:"username"`
+	Token    pgtype.Text `db:"token" json:"token"`
 }
 
 func (q *Queries) UpdateToken(ctx context.Context, arg UpdateTokenParams) (UpdateTokenRow, error) {
-	row := q.db.QueryRowContext(ctx, updateToken, arg.Token, arg.TokenExpireAt, arg.ID)
+	row := q.db.QueryRow(ctx, updateToken, arg.Token, arg.TokenExpireAt, arg.ID)
 	var i UpdateTokenRow
 	err := row.Scan(&i.Username, &i.Token)
 	return i, err
@@ -151,25 +158,25 @@ func (q *Queries) UpdateToken(ctx context.Context, arg UpdateTokenParams) (Updat
 
 const updateTokenExpirationDate = `-- name: UpdateTokenExpirationDate :exec
 UPDATE users
-set token_expire_at = ?
-WHERE id = ?
+set token_expire_at = $1
+WHERE id = $2
 `
 
 type UpdateTokenExpirationDateParams struct {
-	TokenExpireAt sql.NullTime `db:"token_expire_at" json:"tokenExpireAt"`
-	ID            types.UserID `db:"id" json:"id"`
+	TokenExpireAt pgtype.Timestamp `db:"token_expire_at" json:"tokenExpireAt"`
+	ID            types.UserID     `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateTokenExpirationDate(ctx context.Context, arg UpdateTokenExpirationDateParams) error {
-	_, err := q.db.ExecContext(ctx, updateTokenExpirationDate, arg.TokenExpireAt, arg.ID)
+	_, err := q.db.Exec(ctx, updateTokenExpirationDate, arg.TokenExpireAt, arg.ID)
 	return err
 }
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-set username = ?,
-password = ?
-WHERE id = ?
+set username = $1,
+password = $2
+WHERE id = $3
 RETURNING id, username
 `
 
@@ -185,7 +192,7 @@ type UpdateUserRow struct {
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, updateUser, arg.Username, arg.Password, arg.ID)
+	row := q.db.QueryRow(ctx, updateUser, arg.Username, arg.Password, arg.ID)
 	var i UpdateUserRow
 	err := row.Scan(&i.ID, &i.Username)
 	return i, err

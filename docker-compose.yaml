@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+
+  postgres:
+    container_name: adc_postgres
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./docker/data/postgres:/var/lib/postgresql/data
+      - ./database/schema:/docker-entrypoint-initdb.d
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  pgadmin:
+    container_name: adc_pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "127.0.0.1:9000:80"
+    depends_on:
+      - postgres

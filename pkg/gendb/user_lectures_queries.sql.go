@@ -7,13 +7,13 @@ package gendb
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addLectureToUser = `-- name: AddLectureToUser :one
-INSERT INTO user_lectures ( user_id, lecture_id ) VALUES ( ?, ? ) RETURNING user_id, lecture_id
+INSERT INTO user_lectures ( user_id, lecture_id ) VALUES ( $1, $2 ) RETURNING user_id, lecture_id
 `
 
 type AddLectureToUserParams struct {
@@ -27,7 +27,7 @@ type AddLectureToUserRow struct {
 }
 
 func (q *Queries) AddLectureToUser(ctx context.Context, arg AddLectureToUserParams) (AddLectureToUserRow, error) {
-	row := q.db.QueryRowContext(ctx, addLectureToUser, arg.UserID, arg.LectureID)
+	row := q.db.QueryRow(ctx, addLectureToUser, arg.UserID, arg.LectureID)
 	var i AddLectureToUserRow
 	err := row.Scan(&i.UserID, &i.LectureID)
 	return i, err
@@ -38,18 +38,18 @@ SELECT l.name, l.code, l.credit, l.type
 FROM users u
 JOIN user_lectures ul ON u.id = ul.user_id
 JOIN lectures l ON ul.lecture_id = l.id
-WHERE u.id = ?
+WHERE u.id = $1
 `
 
 type GetUserLecturesRow struct {
-	Name   string        `db:"name" json:"name"`
-	Code   string        `db:"code" json:"code"`
-	Credit int64         `db:"credit" json:"credit"`
-	Type   sql.NullInt64 `db:"type" json:"type"`
+	Name   string      `db:"name" json:"name"`
+	Code   string      `db:"code" json:"code"`
+	Credit int16       `db:"credit" json:"credit"`
+	Type   pgtype.Int2 `db:"type" json:"type"`
 }
 
 func (q *Queries) GetUserLectures(ctx context.Context, id types.UserID) ([]GetUserLecturesRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserLectures, id)
+	rows, err := q.db.Query(ctx, getUserLectures, id)
 	if err != nil {
 		return nil, err
 	}
@@ -67,9 +67,6 @@ func (q *Queries) GetUserLectures(ctx context.Context, id types.UserID) ([]GetUs
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -77,7 +74,7 @@ func (q *Queries) GetUserLectures(ctx context.Context, id types.UserID) ([]GetUs
 }
 
 const removeLectureFromUser = `-- name: RemoveLectureFromUser :execrows
-DELETE FROM user_lectures WHERE user_id = ? AND lecture_id = ?
+DELETE FROM user_lectures WHERE user_id = $1 AND lecture_id = $2
 `
 
 type RemoveLectureFromUserParams struct {
@@ -86,9 +83,9 @@ type RemoveLectureFromUserParams struct {
 }
 
 func (q *Queries) RemoveLectureFromUser(ctx context.Context, arg RemoveLectureFromUserParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, removeLectureFromUser, arg.UserID, arg.LectureID)
+	result, err := q.db.Exec(ctx, removeLectureFromUser, arg.UserID, arg.LectureID)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }

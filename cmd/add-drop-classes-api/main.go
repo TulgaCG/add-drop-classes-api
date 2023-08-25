@@ -1,21 +1,17 @@
 package main
 
 import (
-	"log"
-	"log/slog"
-	"os"
+	"github.com/alecthomas/kong"
 
-	"github.com/TulgaCG/add-drop-classes-api/pkg/app"
+	"github.com/TulgaCG/add-drop-classes-api/cmd/add-drop-classes-api/root"
 )
 
-const dbPath = "test.sqlite"
-
 func main() {
-	slogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
-	if err := app.Run(&app.Conf{
-		DbPath: dbPath,
-		Log:    slogger,
-	}); err != nil {
-		log.Fatal("failed to run application: %w", err)
-	}
+	ctx := kong.Parse(&root.Cli{},
+		kong.Name("add-drop-classes-api"),
+		kong.Description("A WebApp for Add/Drop Classes in a college"),
+		kong.UsageOnError(),
+	)
+
+	ctx.FatalIfErrorf(ctx.Run())
 }

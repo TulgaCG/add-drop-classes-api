@@ -12,8 +12,9 @@ import (
 )
 
 func TestAddRoleToUser(t *testing.T) {
-	db, err := database.NewTestDb(context.Background())
+	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
+	defer closeFn(t)
 
 	testCases := []struct {
 		UserID      types.UserID
@@ -40,8 +41,9 @@ func TestAddRoleToUser(t *testing.T) {
 }
 
 func TestRemoveRoleFromUser(t *testing.T) {
-	db, err := database.NewTestDb(context.Background())
+	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
+	defer closeFn(t)
 
 	testCases := []struct {
 		UserID      types.UserID
