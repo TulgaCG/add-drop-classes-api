@@ -12,10 +12,15 @@ import (
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
+const errCreateMockData = "failed to create mock data"
+
 func TestListUsers(t *testing.T) {
 	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
 	defer closeFn(t)
+
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
 
 	expectedRows, err := db.ListUsers(context.Background())
 	require.NoError(t, err)
@@ -34,6 +39,9 @@ func TestGetUser(t *testing.T) {
 	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
 	defer closeFn(t)
+
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
 
 	testCases := []struct {
 		Index       types.UserID
@@ -62,11 +70,14 @@ func TestGetUserByUsername(t *testing.T) {
 	require.NoError(t, err)
 	defer closeFn(t)
 
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
+
 	testCases := []struct {
 		Username    string
 		ExpectedErr bool
 	}{
-		{"testuser1", false},
+		{"testuser", false},
 		{"wronguser", true},
 	}
 
@@ -88,6 +99,9 @@ func TestUpdateUser(t *testing.T) {
 	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
 	defer closeFn(t)
+
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
 
 	testCases := []struct {
 		Index       types.UserID

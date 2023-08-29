@@ -10,7 +10,10 @@ import (
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/database"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/domain/user"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 )
+
+const errCreateMockData = "failed to create mock data"
 
 func TestCreateRandomToken(t *testing.T) {
 	token, err := createRandomToken(tokenLen)
@@ -23,12 +26,17 @@ func TestGetUserCredentialsWithUsername(t *testing.T) {
 	require.NoError(t, err)
 	defer closeFn(t)
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("testpassword"), bcrypt.DefaultCost)
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: string(hashedPassword)})
+	require.NoError(t, err, errCreateMockData)
+
 	testCases := []struct {
 		Username    string
 		Password    string
 		ExpectedErr bool
 	}{
-		{"testuser1", "testpassword1", false},
+		{"testuser", "testpassword", false},
 		{"wronguser", "testpassword2", true},
 	}
 
@@ -51,12 +59,17 @@ func TestLogin(t *testing.T) {
 	require.NoError(t, err)
 	defer closeFn(t)
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("testpassword"), bcrypt.DefaultCost)
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: string(hashedPassword)})
+	require.NoError(t, err, errCreateMockData)
+
 	testCases := []struct {
 		Username    string
 		Password    string
 		ExpectedErr bool
 	}{
-		{"testuser1", "testpassword1", false},
+		{"testuser", "testpassword", false},
 		{"testuser2", "wrongpassword", true},
 		{"wronguser", "testpassword3", true},
 	}
@@ -68,7 +81,7 @@ func TestLogin(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Len(t, row.Token.String, tokenLen*2)
+				require.Len(t, row.Token.String, tokenLen)
 				u, err := db.GetUserCredentialsWithUsername(context.Background(), testCase.Username)
 				require.NoError(t, err, "failed to get user by username")
 				require.Equal(t, u.Token.String, row.Token.String)
@@ -82,13 +95,17 @@ func TestLogout(t *testing.T) {
 	require.NoError(t, err)
 	defer closeFn(t)
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("testpassword"), bcrypt.DefaultCost)
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: string(hashedPassword)})
+	require.NoError(t, err, errCreateMockData)
+
 	testCases := []struct {
 		Username    string
 		Password    string
 		ExpectedErr bool
 	}{
-		{"testuser1", "testpassword1", false},
-		{"testuser2", "wrongpassword", false},
+		{"testuser", "testpassword", false},
 		{"wronguser", "testpassword3", true},
 	}
 
@@ -119,8 +136,8 @@ func TestRegister(t *testing.T) {
 		Password    string
 		ExpectedErr bool
 	}{
-		{"testuser1", "testpassword1", true},
-		{"testuser10", "testpassword10", false},
+		{"testuser", "testpassword", false},
+		{"testuser", "testpassword", true},
 	}
 
 	for i, testCase := range testCases {

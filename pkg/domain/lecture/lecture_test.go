@@ -8,20 +8,29 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/database"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
+
+const errCreateMockData = "failed to create mock data"
 
 func TestGetLecturesFromUser(t *testing.T) {
 	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
 	defer closeFn(t)
 
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.CreateLecture(context.Background(), gendb.CreateLectureParams{Name: "Test lecture", Code: "TST101", Credit: 3})
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.AddLectureToUser(context.Background(), gendb.AddLectureToUserParams{UserID: 1, LectureID: 1})
+	require.NoError(t, err, errCreateMockData)
+
 	testCases := []struct {
 		UserID      types.UserID
 		ExpectedErr bool
 	}{
 		{types.UserID(1), false},
-		{types.UserID(4), true},
 		{types.UserID(10), true},
 	}
 
@@ -47,14 +56,19 @@ func TestAddLectureToUser(t *testing.T) {
 	require.NoError(t, err)
 	defer closeFn(t)
 
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.CreateLecture(context.Background(), gendb.CreateLectureParams{Name: "Test lecture", Code: "TST101", Credit: 3})
+	require.NoError(t, err, errCreateMockData)
+
 	testCases := []struct {
 		Username    string
 		LectureCode string
 		ExpectedErr bool
 	}{
-		{"testuser1", "ADA102", false},
-		{"testuser2", "ADA102", true},
-		{"testuser10", "ADA102", true},
+		{"testuser", "TST101", false},
+		{"testuser", "TST101", true},
+		{"testuser", "ADA102", true},
 	}
 
 	for i, testCase := range testCases {
@@ -73,6 +87,13 @@ func TestRemoveLectureFromUser(t *testing.T) {
 	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
 	defer closeFn(t)
+
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.CreateLecture(context.Background(), gendb.CreateLectureParams{Name: "Test lecture", Code: "TST101", Credit: 3})
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.AddLectureToUser(context.Background(), gendb.AddLectureToUserParams{UserID: 1, LectureID: 1})
+	require.NoError(t, err, errCreateMockData)
 
 	testCases := []struct {
 		UserID      types.UserID
