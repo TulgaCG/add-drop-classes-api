@@ -3,15 +3,13 @@ package response
 import "errors"
 
 var (
-	ErrFailedToAuthenticate       = errors.New("failed to authenticate, check username, password or session")
-	ErrFailedToFindDBInCtx        = errors.New("failed to find database in the context")
-	ErrFailedToFindLoggerInCtx    = errors.New("failed to find logger in the context")
-	ErrFailedToFindValidatorInCtx = errors.New("failed to find validator in the context")
-	ErrFailedToFindRolesInCtx     = errors.New("failed to get roles from gin context")
-	ErrInvalidParamIDFormat       = errors.New("invalid id format, id must be integer")
-	ErrInsufficientPermission     = errors.New("user dont have permission")
-	ErrInvalidRequestFormat       = errors.New("invalid request format")
-	ErrContentNotFound            = errors.New("failed to find content in db")
+	ErrFailedToAuthenticate    = errors.New("failed to authenticate, check username, password or session")
+	ErrFailedToFindAppCtxInCtx = errors.New("failed to find app context in the handler context")
+	ErrFailedToFindRolesInCtx  = errors.New("failed to get roles from gin context")
+	ErrInvalidParamIDFormat    = errors.New("invalid id format, id must be integer")
+	ErrInsufficientPermission  = errors.New("user dont have permission")
+	ErrInvalidRequestFormat    = errors.New("invalid request format")
+	ErrContentNotFound         = errors.New("failed to find content in db")
 )
 
 type Response struct {

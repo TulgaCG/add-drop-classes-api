@@ -7,26 +7,26 @@ package gendb
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createLecture = `-- name: CreateLecture :one
 INSERT INTO lectures (name, code, credit, type) VALUES (
-    ?, ?, ?, ?
+    $1, $2, $3, $4
 ) RETURNING id, name, code, credit, type
 `
 
 type CreateLectureParams struct {
-	Name   string        `db:"name" json:"name"`
-	Code   string        `db:"code" json:"code"`
-	Credit int64         `db:"credit" json:"credit"`
-	Type   sql.NullInt64 `db:"type" json:"type"`
+	Name   string      `db:"name" json:"name"`
+	Code   string      `db:"code" json:"code"`
+	Credit int16       `db:"credit" json:"credit"`
+	Type   pgtype.Int2 `db:"type" json:"type"`
 }
 
 func (q *Queries) CreateLecture(ctx context.Context, arg CreateLectureParams) (Lecture, error) {
-	row := q.db.QueryRowContext(ctx, createLecture,
+	row := q.db.QueryRow(ctx, createLecture,
 		arg.Name,
 		arg.Code,
 		arg.Credit,
@@ -44,11 +44,11 @@ func (q *Queries) CreateLecture(ctx context.Context, arg CreateLectureParams) (L
 }
 
 const getLecture = `-- name: GetLecture :one
-SELECT id, name, code, credit, type FROM lectures WHERE id = ? LIMIT 1
+SELECT id, name, code, credit, type FROM lectures WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetLecture(ctx context.Context, id types.LectureID) (Lecture, error) {
-	row := q.db.QueryRowContext(ctx, getLecture, id)
+	row := q.db.QueryRow(ctx, getLecture, id)
 	var i Lecture
 	err := row.Scan(
 		&i.ID,
@@ -61,11 +61,11 @@ func (q *Queries) GetLecture(ctx context.Context, id types.LectureID) (Lecture, 
 }
 
 const getLectureByCode = `-- name: GetLectureByCode :one
-SELECT id, name, code, credit, type FROM lectures WHERE code = ?
+SELECT id, name, code, credit, type FROM lectures WHERE code = $1
 `
 
 func (q *Queries) GetLectureByCode(ctx context.Context, code string) (Lecture, error) {
-	row := q.db.QueryRowContext(ctx, getLectureByCode, code)
+	row := q.db.QueryRow(ctx, getLectureByCode, code)
 	var i Lecture
 	err := row.Scan(
 		&i.ID,
@@ -82,7 +82,7 @@ SELECT id, name, code, credit, type FROM lectures ORDER BY code
 `
 
 func (q *Queries) ListLectures(ctx context.Context) ([]Lecture, error) {
-	rows, err := q.db.QueryContext(ctx, listLectures)
+	rows, err := q.db.Query(ctx, listLectures)
 	if err != nil {
 		return nil, err
 	}
@@ -100,9 +100,6 @@ func (q *Queries) ListLectures(ctx context.Context) ([]Lecture, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -13,7 +13,7 @@ import (
 
 const addRoleToUser = `-- name: AddRoleToUser :one
 INSERT INTO user_roles (user_id, role_id) VALUES (
-    ?, ?
+    $1, $2
 ) RETURNING user_id, role_id
 `
 
@@ -22,14 +22,9 @@ type AddRoleToUserParams struct {
 	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }
 
-type AddRoleToUserRow struct {
-	UserID types.UserID `db:"user_id" json:"userId"`
-	RoleID types.RoleID `db:"role_id" json:"roleId"`
-}
-
-func (q *Queries) AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (AddRoleToUserRow, error) {
-	row := q.db.QueryRowContext(ctx, addRoleToUser, arg.UserID, arg.RoleID)
-	var i AddRoleToUserRow
+func (q *Queries) AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (UserRole, error) {
+	row := q.db.QueryRow(ctx, addRoleToUser, arg.UserID, arg.RoleID)
+	var i UserRole
 	err := row.Scan(&i.UserID, &i.RoleID)
 	return i, err
 }
@@ -39,11 +34,11 @@ SELECT r.role
 FROM users u
 JOIN user_roles ur ON u.id = ur.user_id
 JOIN roles r ON ur.role_id = r.id
-WHERE u.id = ?
+WHERE u.id = $1
 `
 
 func (q *Queries) GetUserRoles(ctx context.Context, id types.UserID) ([]types.Role, error) {
-	rows, err := q.db.QueryContext(ctx, getUserRoles, id)
+	rows, err := q.db.Query(ctx, getUserRoles, id)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +51,6 @@ func (q *Queries) GetUserRoles(ctx context.Context, id types.UserID) ([]types.Ro
 		}
 		items = append(items, role)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -66,7 +58,7 @@ func (q *Queries) GetUserRoles(ctx context.Context, id types.UserID) ([]types.Ro
 }
 
 const removeRoleFromUser = `-- name: RemoveRoleFromUser :execrows
-DELETE FROM user_roles WHERE user_id = ? AND role_id = ?
+DELETE FROM user_roles WHERE user_id = $1 AND role_id = $2
 `
 
 type RemoveRoleFromUserParams struct {
@@ -75,9 +67,9 @@ type RemoveRoleFromUserParams struct {
 }
 
 func (q *Queries) RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, removeRoleFromUser, arg.UserID, arg.RoleID)
+	result, err := q.db.Exec(ctx, removeRoleFromUser, arg.UserID, arg.RoleID)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }

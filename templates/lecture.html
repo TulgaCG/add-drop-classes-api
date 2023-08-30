@@ -1,0 +1,17 @@
+{% block body %}
+<div style="width: 100%;">
+    {% for lecture in lectures %}
+    <div id={{ lecture.ID }} class="lecture">
+        <h3>Lecture {{ lecture.ID }}:</h3>
+        <b>Code: {{ lecture.Code }}</b><br>
+        <b>Name: {{ lecture.Name }}</b><br>
+        {% if !lectureExist(lecture.Code) %}
+        <button id="btnLec{{lecture.ID}}">Take lecture</button><br>
+    </div>
+    {% else %}
+    <button id="btnLec{{lecture.ID}}">Drop lecture</button><br>
+</div>
+{% endif %}
+{% endfor %}
+</div>
+{% endblock %}

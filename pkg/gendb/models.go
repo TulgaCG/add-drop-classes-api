@@ -5,17 +5,62 @@
 package gendb
 
 import (
-	"database/sql"
+	"database/sql/driver"
+	"fmt"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type UserRoleValue string
+
+const (
+	UserRoleValueAdmin   UserRoleValue = "admin"
+	UserRoleValueTeacher UserRoleValue = "teacher"
+	UserRoleValueStudent UserRoleValue = "student"
+)
+
+func (e *UserRoleValue) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserRoleValue(s)
+	case string:
+		*e = UserRoleValue(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserRoleValue: %T", src)
+	}
+	return nil
+}
+
+type NullUserRoleValue struct {
+	UserRoleValue UserRoleValue `json:"userRoleValue"`
+	Valid         bool          `json:"valid"` // Valid is true if UserRoleValue is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserRoleValue) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserRoleValue, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserRoleValue.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserRoleValue) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserRoleValue), nil
+}
 
 type Lecture struct {
 	ID     types.LectureID `db:"id" json:"id"`
 	Name   string          `db:"name" json:"name"`
 	Code   string          `db:"code" json:"code"`
-	Credit int64           `db:"credit" json:"credit"`
-	Type   sql.NullInt64   `db:"type" json:"type"`
+	Credit int16           `db:"credit" json:"credit"`
+	Type   pgtype.Int2     `db:"type" json:"type"`
 }
 
 type Role struct {
@@ -24,11 +69,11 @@ type Role struct {
 }
 
 type User struct {
-	ID            types.UserID   `db:"id" json:"id"`
-	Username      string         `db:"username" json:"username"`
-	Password      string         `db:"password" json:"password"`
-	Token         sql.NullString `db:"token" json:"token"`
-	TokenExpireAt sql.NullTime   `db:"token_expire_at" json:"tokenExpireAt"`
+	ID            types.UserID     `db:"id" json:"id"`
+	Username      string           `db:"username" json:"username"`
+	Password      string           `db:"password" json:"password"`
+	Token         pgtype.Text      `db:"token" json:"token"`
+	TokenExpireAt pgtype.Timestamp `db:"token_expire_at" json:"tokenExpireAt"`
 }
 
 type UserLecture struct {
@@ -38,7 +83,6 @@ type UserLecture struct {
 }
 
 type UserRole struct {
-	ID     int64        `db:"id" json:"id"`
 	UserID types.UserID `db:"user_id" json:"userId"`
 	RoleID types.RoleID `db:"role_id" json:"roleId"`
 }

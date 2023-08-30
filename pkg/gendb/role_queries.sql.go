@@ -12,35 +12,35 @@ import (
 )
 
 const createRole = `-- name: CreateRole :one
-INSERT INTO roles (role) VALUES (?)
+INSERT INTO roles (role) VALUES ($1)
 RETURNING id, role
 `
 
 func (q *Queries) CreateRole(ctx context.Context, role types.Role) (Role, error) {
-	row := q.db.QueryRowContext(ctx, createRole, role)
+	row := q.db.QueryRow(ctx, createRole, role)
 	var i Role
 	err := row.Scan(&i.ID, &i.Role)
 	return i, err
 }
 
 const deleteRole = `-- name: DeleteRole :execrows
-DELETE FROM roles WHERE role = ?
+DELETE FROM roles WHERE role = $1
 `
 
 func (q *Queries) DeleteRole(ctx context.Context, role types.Role) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteRole, role)
+	result, err := q.db.Exec(ctx, deleteRole, role)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }
 
 const getRoleByName = `-- name: GetRoleByName :one
-SELECT id, role FROM roles WHERE role = ?
+SELECT id, role FROM roles WHERE role = $1
 `
 
 func (q *Queries) GetRoleByName(ctx context.Context, role types.Role) (Role, error) {
-	row := q.db.QueryRowContext(ctx, getRoleByName, role)
+	row := q.db.QueryRow(ctx, getRoleByName, role)
 	var i Role
 	err := row.Scan(&i.ID, &i.Role)
 	return i, err

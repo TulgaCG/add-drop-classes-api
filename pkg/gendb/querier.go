@@ -12,7 +12,7 @@ import (
 
 type Querier interface {
 	AddLectureToUser(ctx context.Context, arg AddLectureToUserParams) (AddLectureToUserRow, error)
-	AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (AddRoleToUserRow, error)
+	AddRoleToUser(ctx context.Context, arg AddRoleToUserParams) (UserRole, error)
 	CreateLecture(ctx context.Context, arg CreateLectureParams) (Lecture, error)
 	CreateRole(ctx context.Context, role types.Role) (Role, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
@@ -29,6 +29,7 @@ type Querier interface {
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	RemoveLectureFromUser(ctx context.Context, arg RemoveLectureFromUserParams) (int64, error)
 	RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) (int64, error)
+	TestDeleteUser(ctx context.Context, username string) error
 	UpdateToken(ctx context.Context, arg UpdateTokenParams) (UpdateTokenRow, error)
 	UpdateTokenExpirationDate(ctx context.Context, arg UpdateTokenExpirationDateParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error)

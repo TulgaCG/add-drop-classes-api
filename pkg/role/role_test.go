@@ -8,21 +8,28 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/TulgaCG/add-drop-classes-api/pkg/database"
+	"github.com/TulgaCG/add-drop-classes-api/pkg/gendb"
 	"github.com/TulgaCG/add-drop-classes-api/pkg/types"
 )
 
+const errCreateMockData = "failed to create mock data"
+
 func TestAddRoleToUser(t *testing.T) {
-	db, err := database.NewTestDb(context.Background())
+	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
+	defer closeFn(t)
+
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
 
 	testCases := []struct {
 		UserID      types.UserID
 		RoleID      types.RoleID
 		ExpectedErr bool
 	}{
-		{1, 3, true},
 		{1, 2, false},
-		{2, 4, false},
+		{1, 2, true},
+		{1, 4, true},
 	}
 
 	for i, testCase := range testCases {
@@ -40,16 +47,23 @@ func TestAddRoleToUser(t *testing.T) {
 }
 
 func TestRemoveRoleFromUser(t *testing.T) {
-	db, err := database.NewTestDb(context.Background())
+	db, closeFn, err := database.NewTestDB(context.Background())
 	require.NoError(t, err)
+	defer closeFn(t)
+
+	_, err = db.CreateUser(context.Background(), gendb.CreateUserParams{Username: "testuser", Password: "testpassword"})
+	require.NoError(t, err, errCreateMockData)
+	_, err = db.AddRoleToUser(context.Background(), gendb.AddRoleToUserParams{UserID: 1, RoleID: 1})
+	require.NoError(t, err, errCreateMockData)
 
 	testCases := []struct {
 		UserID      types.UserID
 		RoleID      types.RoleID
 		ExpectedErr bool
 	}{
-		{1, 2, true},
-		{1, 3, false},
+		{1, 1, false},
+		{1, 1, true},
+		{1, 4, true},
 	}
 
 	for i, testCase := range testCases {
